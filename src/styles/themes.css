@@ -1,0 +1,36 @@
+:root {
+  /* Layout Constants */
+  --header-height: 48px;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Obsidian Theme (Dark/Electric) */
+[data-theme="obsidian"] {
+  --bg-color: #0d0f14;
+  --board-bg: #11141b;
+  --grid-color: rgba(255, 255, 255, 0.03);
+  --block-bg: rgba(255, 255, 255, 0.05);
+  --block-border: rgba(255, 255, 255, 0.1);
+  --accent-color: #4f46e5;
+  --text-main: #e2e8f0;
+  --text-muted: #94a3b8;
+  --header-bg: rgba(0, 0, 0, 0.2);
+  --block-header-bg: rgba(255, 255, 255, 0.03);
+  --code-color: #a5b4fc;
+}
+
+/* Nordic Theme (Light/Frost) */
+[data-theme="nordic"] {
+  --bg-color: #eceff4;
+  --board-bg: #e5e9f0;
+  --grid-color: rgba(0, 0, 0, 0.05);
+  --block-bg: rgba(255, 255, 255, 0.7);
+  --block-border: rgba(0, 0, 0, 0.1);
+  --accent-color: #5e81ac;
+  --text-main: #2e3440;
+  --text-muted: #4c566a;
+  --header-bg: rgba(255, 255, 255, 0.8);
+  --block-header-bg: rgba(0, 0, 0, 0.03);
+  --code-color: #5e81ac;
+}
