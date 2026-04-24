@@ -55,7 +55,6 @@ class Workspace {
       return;
     }
 
-    const fragment = document.createDocumentFragment();
     const canvas = document.getElementById('canvas');
 
     data.blocks
