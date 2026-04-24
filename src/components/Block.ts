@@ -1,5 +1,6 @@
 import { relationshipManager } from "../core/RelationshipManager";
 import { Draggable, dragManager } from "../core/input/DragManager";
+import { Resizable, resizeManager } from "../core/input/ResizeManager";
 import { eventBus, AppEvents } from "../core/EventEmitter";
 import { workspaceState } from "../core/state/WorkspaceState";
 import { SpaceManager } from "../core/SpaceManager";
@@ -28,8 +29,9 @@ export abstract class UIComponent {
   }
 }
 
-export abstract class Block extends UIComponent implements Draggable {
+export abstract class Block extends UIComponent implements Draggable, Resizable {
   protected header: HTMLElement;
+  protected resizer: HTMLElement;
   private initialX: number = 0;
   private initialY: number = 0;
 
@@ -38,8 +40,18 @@ export abstract class Block extends UIComponent implements Draggable {
     const header = this.element.querySelector<HTMLElement>('.block-header');
     if (!header) throw new Error(`Header not found for block ${this.id}`);
     this.header = header;
+
+    // Crear tirador de resize dinámicamente si no existe
+    let resizer = this.element.querySelector<HTMLElement>('.resizer');
+    if (!resizer) {
+      resizer = document.createElement('div');
+      resizer.className = 'resizer';
+      this.element.appendChild(resizer);
+    }
+    this.resizer = resizer;
     
     dragManager.register(this, this.header);
+    resizeManager.register(this, this.resizer);
     this.initBaseEvents();
   }
 
@@ -63,6 +75,21 @@ export abstract class Block extends UIComponent implements Draggable {
   public onDragEnd() {
     this.element.classList.remove('is-dragging');
     this.header.style.cursor = 'grab';
+  }
+
+  // --- RESIZABLE INTERFACE ---
+  public onResizeStart() {
+    this.element.classList.add('is-resizing');
+  }
+
+  public onResize(width: number, height: number) {
+    this.element.style.width = `${width}px`;
+    this.element.style.height = `${height}px`;
+    eventBus.emit(AppEvents.BLOCK_MOVE, this.id);
+  }
+
+  public onResizeEnd() {
+    this.element.classList.remove('is-resizing');
   }
 
   private initBaseEvents() {

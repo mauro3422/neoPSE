@@ -1,4 +1,5 @@
 @import "./styles/themes.css";
+@import "./styles/context-menu.css";
 
 :root {
   /* Layout */
@@ -130,6 +131,22 @@ header {
 }
 .block:hover { border-color: var(--accent-color); }
 .block.is-selected { border-color: var(--accent-color); box-shadow: 0 0 0 2px var(--accent-color), 0 8px 32px rgba(0, 0, 0, 0.2); }
+
+/* RESIZER */
+.resizer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, var(--block-border) 50%);
+  border-radius: 0 0 12px 0;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.block:hover .resizer { opacity: 1; }
+.resizer:hover { background: linear-gradient(135deg, transparent 50%, var(--accent-color) 50%); }
 
 body.linking-mode .block { cursor: crosshair !important; border-style: dashed; }
 .block.is-linking-source {

@@ -20,6 +20,10 @@ export class BlockRegistry {
   public static getDefinition(type: BlockType): BlockDefinition | undefined {
     return this.definitions.get(type);
   }
+
+  public static getAllDefinitions(): BlockDefinition[] {
+    return Array.from(this.definitions.values());
+  }
 }
 
 // Registro centralizado: Ahora el registro es el DUEÑO de cómo se ve el bloque

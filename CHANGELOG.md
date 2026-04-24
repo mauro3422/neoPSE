@@ -2,6 +2,14 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo y en los registros detallados de versión.
 
+## [v0.4.0] - 2026-04-24
+### "Advanced Interaction"
+- **Menú Contextual**: Creación dinámica de bloques en el punto de clic.
+- **Sistema de Redimensionamiento (Resize)**: Tiradores dinámicos con persistencia de tamaño.
+- **Mouse System Pro**: Implementación de umbral (threshold) de drag para permitir escritura fluida.
+- **Limpieza de UI**: Eliminación de controles legacy en favor de una UX contextual.
+- Registro centralizado de definiciones de bloques mejorado.
+
 ## [v0.2.0] - 2026-04-24
 ### "Modular Engine"
 - Arquitectura desacoplada basada en registros.

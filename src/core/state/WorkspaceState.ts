@@ -79,7 +79,8 @@ export class WorkspaceState {
       const el = document.getElementById(block.id);
       if (el) {
         const { x, y } = { x: parseFloat(el.style.left) || 0, y: parseFloat(el.style.top) || 0 };
-        return { ...block, position: { x, y } };
+        const size = { width: el.offsetWidth, height: el.offsetHeight };
+        return { ...block, position: { x, y }, size };
       }
       return block;
     });

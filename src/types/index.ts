@@ -10,6 +10,7 @@ export interface BlockData {
   id: string;
   type: BlockType;
   position: Vector2;
+  size?: { width: number; height: number };
   content: string;
 }
 

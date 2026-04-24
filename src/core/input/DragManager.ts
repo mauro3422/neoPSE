@@ -9,50 +9,65 @@ export interface Draggable {
 
 export class DragManager {
   private activeDraggable: Draggable | null = null;
+  private pendingDraggable: Draggable | null = null;
   private startX: number = 0;
   private startY: number = 0;
+  private threshold: number = 5; // Píxeles de umbral
+  private isDragging: boolean = false;
 
   constructor() {
-    // Escuchar en fase de captura para tener prioridad absoluta
-    window.addEventListener('mousemove', this.onMouseMove.bind(this), true);
-    window.addEventListener('mouseup', this.onMouseUp.bind(this), true);
+    window.addEventListener('mousemove', this.onMouseMove.bind(this), { capture: true });
+    window.addEventListener('mouseup', this.onMouseUp.bind(this), { capture: true });
   }
 
   public register(draggable: Draggable, handle: HTMLElement) {
-    handle.style.pointerEvents = 'auto'; // Asegurar que reciba eventos
+    handle.style.pointerEvents = 'auto';
     
     handle.addEventListener('mousedown', (e) => {
       const target = e.target as HTMLElement;
-      if (target.closest('button') || target.closest('.header-actions')) return;
+      // No interferir con botones, inputs o el resizer
+      if (target.closest('button') || target.closest('input') || target.closest('textarea') || target.isContentEditable || target.closest('.resizer')) {
+        return;
+      }
 
-      e.preventDefault();
-      e.stopPropagation();
+      e.stopPropagation(); // <--- EVITA QUE EL BOARD REACCIONE SI CLICKAS UN BLOQUE
       
-      this.activeDraggable = draggable;
+      this.pendingDraggable = draggable;
       this.startX = e.clientX;
       this.startY = e.clientY;
-      
-      draggable.onDragStart(e.clientX, e.clientY);
-      console.log(`[DragManager] Drag iniciado en:`, draggable.getElement().id);
+      this.isDragging = false;
     });
   }
 
   private onMouseMove(e: MouseEvent) {
-    if (!this.activeDraggable) return;
+    if (!this.pendingDraggable) return;
 
-    const zoom = viewport.getZoom();
-    const dx = (e.clientX - this.startX) / zoom;
-    const dy = (e.clientY - this.startY) / zoom;
+    if (!this.isDragging) {
+      const dist = Math.hypot(e.clientX - this.startX, e.clientY - this.startY);
+      if (dist > this.threshold) {
+        this.isDragging = true;
+        this.activeDraggable = this.pendingDraggable;
+        this.activeDraggable.onDragStart(e.clientX, e.clientY);
+      }
+    }
 
-    this.activeDraggable.onDragMove(dx, dy);
+    if (this.isDragging && this.activeDraggable) {
+      e.preventDefault(); // Ahora sí bloqueamos para el arrastre
+      const zoom = viewport.getZoom();
+      const dx = (e.clientX - this.startX) / zoom;
+      const dy = (e.clientY - this.startY) / zoom;
+      this.activeDraggable.onDragMove(dx, dy);
+    }
   }
 
   private onMouseUp() {
-    if (this.activeDraggable) {
-      console.log(`[DragManager] Drag finalizado`);
+    if (this.isDragging && this.activeDraggable) {
       this.activeDraggable.onDragEnd();
-      this.activeDraggable = null;
     }
+    
+    this.activeDraggable = null;
+    this.pendingDraggable = null;
+    this.isDragging = false;
   }
 }
 

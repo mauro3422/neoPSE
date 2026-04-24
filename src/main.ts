@@ -12,12 +12,15 @@ import { BlockType } from "./types";
 import { InputSystem } from "./core/InputSystem";
 import { BlockRegistry } from "./core/BlockRegistry";
 import { SpaceManager } from "./core/SpaceManager";
+import { ContextMenu } from "./components/ContextMenu";
 
 class Workspace {
   private blocks: Block[] = [];
+  private contextMenu!: ContextMenu;
 
   constructor() {
     this.init();
+    this.setupContextMenu();
   }
 
   private init() {
@@ -30,8 +33,8 @@ class Workspace {
 
       this.rehydrateWorkspace();
       this.setupThemeToggle();
-      this.setupCreationButtons();
       this.setupProjectTitle();
+      this.setupRecentering();
       
       console.log('NeoPSE Workspace 3.2 (Bugfix Ready) Initialized');
     } catch (error) {
@@ -48,12 +51,12 @@ class Workspace {
 
     data.blocks
       .filter(b => b.type !== BlockType.ASSISTANT)
-      .forEach(b => this.spawnBlockInstance(b.type, b.position.x, b.position.y, b.id, b.content));
+      .forEach(b => this.spawnBlockInstance(b.type, b.position.x, b.position.y, b.id, b.content, b.size));
     
     data.links.forEach(l => relationshipManager.addLink(l.fromId, l.toId));
   }
 
-  private spawnBlockInstance(type: BlockType, x: number, y: number, id?: string, content?: string) {
+  private spawnBlockInstance(type: BlockType, x: number, y: number, id?: string, content?: string, size?: { width: number, height: number }) {
     const def = BlockRegistry.getDefinition(type);
     if (!def) return;
 
@@ -61,6 +64,12 @@ class Workspace {
     let finalId = id;
     if (!id || !document.getElementById(id)) {
       finalId = BlockFactory.createBlock(type, x, y, id);
+    }
+
+    const el = document.getElementById(finalId!);
+    if (el && size) {
+      el.style.width = `${size.width}px`;
+      el.style.height = `${size.height}px`;
     }
 
     const instance = new def.controller(`#${finalId}`);
@@ -101,23 +110,20 @@ class Workspace {
     }
   }
 
-  private setupCreationButtons() {
-    document.getElementById('add-pseudo')?.addEventListener("click", () => {
-      const center = SpaceManager.getViewportCenter();
-      this.spawnBlockInstance(BlockType.PSEUDOCODE, center.x, center.y);
-    });
-
-    document.getElementById('add-note')?.addEventListener("click", () => {
-      const center = SpaceManager.getViewportCenter();
-      this.spawnBlockInstance(BlockType.NOTE, center.x, center.y);
-    });
-
+  private setupRecentering() {
     document.getElementById("recenter-btn")?.addEventListener("click", () => {
       import("./core/viewport/Viewport").then(({ viewport }) => {
         viewport.setZoom(1.0);
         viewport.setOffset(0, 0);
         eventBus.emit(AppEvents.VIEWPORT_CHANGE, undefined as any);
       });
+    });
+  }
+
+  private setupContextMenu() {
+    this.contextMenu = new ContextMenu((type, screenPos) => {
+      const worldPos = SpaceManager.screenToWorld(screenPos.x, screenPos.y);
+      this.spawnBlockInstance(type as BlockType, worldPos.x, worldPos.y);
     });
   }
 
