@@ -1,43 +1,38 @@
-import { BlockRegistry } from "./BlockRegistry";
 import { BlockType } from "../types";
+import { BlockRegistry } from "./BlockRegistry";
 
 export class BlockFactory {
-  private static readonly TEMPLATE_HEADER = (title: string) => `
-    <div class="block-header">
-      <span class="block-title">${title}</span>
-      <div class="header-actions">
-        <button class="link-btn" title="Enlazar">🔗</button>
-        <button class="close-btn" title="Cerrar">×</button>
-      </div>
-    </div>
-  `;
-
   /**
-   * Crea un bloque inyectando la estructura definida en el Registro.
-   * La Factory es ahora agnóstica al contenido (SOLID).
+   * Crea un bloque inyectando toda la lógica definida en el Registry.
    */
-  public static createBlock(type: BlockType, x: number, y: number, customId?: string): string {
-    const def = BlockRegistry.getDefinition(type);
-    if (!def) throw new Error(`Block type ${type} not registered`);
+  public static createBlock(type: BlockType, x: number, y: number, id?: string): HTMLElement | null {
+    const definition = BlockRegistry.getDefinition(type);
+    if (!definition) return null;
 
-    const id = customId || `${type}-${Date.now()}`;
-    const headerHtml = def.useHeader !== false ? this.TEMPLATE_HEADER(def.title) : '';
+    const finalId = id || `block_${Math.random().toString(36).substr(2, 9)}`;
+    const el = document.createElement('div');
+    el.id = finalId;
+    el.classList.add('world-block', definition.className);
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.innerHTML = definition.structureHtml;
 
-    const html = `
-      <div id="${id}" class="block world-block ${def.className}" style="top: ${y}px; left: ${x}px;">
-        ${headerHtml}
-        <div class="block-content">${def.structureHtml}</div>
-      </div>
-    `;
-    
-    this.appendToCanvas(html);
-    return id;
+    if (definition.useHeader) {
+      this.injectHeader(el, definition.title);
+    }
+
+    return el;
   }
 
-  private static appendToCanvas(html: string) {
-    const canvas = document.getElementById("canvas");
-    if (canvas) {
-      canvas.insertAdjacentHTML('beforeend', html);
-    }
+  private static injectHeader(el: HTMLElement, title: string) {
+    const header = document.createElement('div');
+    header.className = 'block-header';
+    header.innerHTML = `
+      <span class="block-title">${title}</span>
+      <div class="block-actions">
+        <button class="block-btn delete-btn">×</button>
+      </div>
+    `;
+    el.prepend(header);
   }
 }

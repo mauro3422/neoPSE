@@ -2,32 +2,42 @@ export enum AppEvents {
   BLOCK_MOVE = 'BLOCK_MOVE',
   VIEWPORT_CHANGE = 'VIEWPORT_CHANGE',
   THEME_CHANGE = 'THEME_CHANGE',
-  WORKSPACE_SAVE = 'WORKSPACE_SAVE'
+  WORKSPACE_SAVE = 'WORKSPACE_SAVE',
+  BLOCK_CREATED = 'BLOCK_CREATED',
+  BLOCK_DELETED = 'BLOCK_DELETED'
 }
 
 /**
- * Mapa de tipos para los payloads de los eventos.
- * Esto garantiza que no enviemos datos incorrectos.
+ * Mapa de tipos para los eventos.
  */
-export interface EventPayloads {
-  [AppEvents.BLOCK_MOVE]: string; // transporta el ID del bloque
+interface EventMap {
+  [AppEvents.BLOCK_MOVE]: string; // blockId
   [AppEvents.VIEWPORT_CHANGE]: void;
-  [AppEvents.THEME_CHANGE]: string; // transporta el nombre del tema
+  [AppEvents.THEME_CHANGE]: string; // theme name
   [AppEvents.WORKSPACE_SAVE]: void;
+  [AppEvents.BLOCK_CREATED]: string; // blockId
+  [AppEvents.BLOCK_DELETED]: string; // blockId
 }
 
-type Handler<T> = (data: T) => void;
+type Callback<T> = (data: T) => void;
 
 class EventEmitter {
-  private events: Map<string, Handler<any>[]> = new Map();
+  private events: Map<string, Set<Callback<any>>> = new Map();
 
-  public on<K extends AppEvents>(event: K, handler: Handler<EventPayloads[K]>) {
-    if (!this.events.has(event)) this.events.set(event, []);
-    this.events.get(event)!.push(handler);
+  public on<K extends keyof EventMap>(event: K, callback: Callback<EventMap[K]>) {
+    if (!this.events.has(event)) this.events.set(event, new Set());
+    this.events.get(event)!.add(callback);
   }
 
-  public emit<K extends AppEvents>(event: K, data: EventPayloads[K]) {
-    this.events.get(event)?.forEach(handler => handler(data));
+  public off<K extends keyof EventMap>(event: K, callback: Callback<EventMap[K]>) {
+    this.events.get(event)?.delete(callback);
+  }
+
+  // Sobrecarga para permitir omitir data si es void
+  public emit<K extends keyof EventMap>(event: EventMap[K] extends void ? K : never): void;
+  public emit<K extends keyof EventMap>(event: K, data: EventMap[K]): void;
+  public emit<K extends keyof EventMap>(event: K, data?: EventMap[K]) {
+    this.events.get(event)?.forEach(cb => cb(data as any));
   }
 }
 

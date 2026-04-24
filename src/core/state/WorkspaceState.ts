@@ -1,4 +1,4 @@
-import { BlockData, LinkData, WorkspaceData, BlockType } from "../../types";
+import { BlockData, WorkspaceData } from "../../types";
 import { eventBus, AppEvents } from "../EventEmitter";
 import { APP_CONFIG } from "../Constants";
 

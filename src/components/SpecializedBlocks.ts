@@ -2,7 +2,7 @@ import { Block } from "./Block";
 import { DOMUtils } from "../core/DOMUtils";
 import { AnimationManager } from "../core/AnimationManager";
 
-export class EditorBlock extends Block {
+export class PseudocodeBlock extends Block {
   constructor(selector: string | HTMLElement) {
     super(selector);
     this.rehydrate();

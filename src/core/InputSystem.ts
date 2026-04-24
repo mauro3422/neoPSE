@@ -1,4 +1,5 @@
 import { eventBus, AppEvents } from "./EventEmitter";
+import { commandManager } from "./CommandManager";
 
 export class InputSystem {
   private static instance: InputSystem;
@@ -8,23 +9,40 @@ export class InputSystem {
   }
 
   public static init() {
-    if (!InputSystem.instance) {
-      InputSystem.instance = new InputSystem();
-    }
+    if (!InputSystem.instance) InputSystem.instance = new InputSystem();
   }
 
   private handleKeyDown(e: KeyboardEvent) {
-    // Esc: Cancelar acciones globales (como el modo enlace)
-    if (e.key === 'Escape') {
-      eventBus.emit(AppEvents.THEME_CHANGE); // Podríamos crear un evento GLOBAL_CANCEL
-      document.body.classList.remove('linking-mode');
-      document.querySelectorAll('.is-linking-source').forEach(el => el.classList.remove('is-linking-source'));
+    // 1. Atajos de una sola tecla
+    switch (e.key) {
+      case 'Escape':
+        this.handleEscape();
+        break;
     }
 
-    // Ctrl + Space: Abrir/Cerrar Asistente (ejemplo de atajo pro)
-    if (e.ctrlKey && e.code === 'Space') {
-      console.log("[InputSystem] Comando de Asistente invocado");
-      // Lógica de toggle asistente...
+    // 2. Atajos con modificadores (Ctrl / Meta)
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key.toLowerCase()) {
+        case 'z':
+          if (e.shiftKey) commandManager.redo();
+          else commandManager.undo();
+          e.preventDefault();
+          break;
+        case 'y':
+          commandManager.redo();
+          e.preventDefault();
+          break;
+        case 's':
+          eventBus.emit(AppEvents.WORKSPACE_SAVE);
+          e.preventDefault();
+          break;
+      }
     }
+  }
+
+  private handleEscape() {
+    document.body.classList.remove('linking-mode');
+    document.querySelectorAll('.is-linking-source').forEach(el => el.classList.remove('is-linking-source'));
+    // En el futuro: cerrar modales, cancelar arrastres, etc.
   }
 }

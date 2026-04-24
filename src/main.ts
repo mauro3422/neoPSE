@@ -4,7 +4,6 @@ import { AssistantBlock } from "./components/AssistantBlock";
 import { ViewportController } from "./core/viewport/ViewportController";
 import { relationshipManager } from "./core/RelationshipManager";
 import { BlockFactory } from "./core/BlockFactory";
-import { CollisionSystem } from "./core/CollisionSystem";
 import { eventBus, AppEvents } from "./core/EventEmitter";
 import { Block } from "./components/Block";
 import { workspaceState } from "./core/state/WorkspaceState";
@@ -12,25 +11,28 @@ import { BlockType } from "./types";
 import { InputSystem } from "./core/InputSystem";
 import { BlockRegistry } from "./core/BlockRegistry";
 import { initBlockRegistry } from "./core/BlocksRegistration";
-import { SpaceManager } from "./core/SpaceManager";
+import { StorageManager } from "./core/StorageManager";
+import { ParticleSystem } from "./core/ParticleSystem";
+import { GeometricEngine } from "./core/GeometricEngine";
 import { ContextMenu } from "./components/ContextMenu";
 
 initBlockRegistry();
 
 class Workspace {
   private blocks: Block[] = [];
-  private contextMenu!: ContextMenu;
+  // @ts-ignore
+  private _contextMenu!: ContextMenu;
 
   constructor() {
     this.init();
-    this.setupContextMenu();
+    this.setupContextMenu(); 
   }
 
   private init() {
     try {
       InputSystem.init();
+      ParticleSystem.init('board');
       new ViewportController('board');
-      CollisionSystem.init();
 
       new AssistantBlock('#assistant-panel');
 
@@ -38,8 +40,9 @@ class Workspace {
       this.setupThemeToggle();
       this.setupProjectTitle();
       this.setupRecentering();
+      this.initAutoSave();
       
-      console.log('NeoPSE Workspace 3.2 (Bugfix Ready) Initialized');
+      console.log('NeoPSE Workspace 0.5.0 (Hardened) Initialized');
     } catch (error) {
       console.error('Failed to initialize Workspace:', error);
     }
@@ -52,41 +55,55 @@ class Workspace {
       return;
     }
 
+    const fragment = document.createDocumentFragment();
+    const board = document.getElementById('board');
+
     data.blocks
       .filter(b => b.type !== BlockType.ASSISTANT)
-      .forEach(b => this.spawnBlockInstance(b.type, b.position.x, b.position.y, b.id, b.content, b.size));
+      .forEach(b => {
+        const instance = this.spawnBlockInstance(b.type, b.position.x, b.position.y, b.id, b.content, b.size);
+        if (instance) fragment.appendChild(instance.getElement());
+      });
     
+    if (board) board.appendChild(fragment);
     data.links.forEach(l => relationshipManager.addLink(l.fromId, l.toId));
   }
 
-  private spawnBlockInstance(type: BlockType, x: number, y: number, id?: string, content?: string, size?: { width: number, height: number }) {
+  private initAutoSave() {
+    setInterval(() => {
+      const data = this.blocks.map(b => b.serialize());
+      StorageManager.save('workspace', data);
+      console.log('Auto-saved workspace');
+    }, 5000);
+  }
+
+  private spawnBlockInstance(type: BlockType, x: number, y: number, id?: string, content?: string, size?: { width: number, height: number }): Block | null {
     const def = BlockRegistry.getDefinition(type);
-    if (!def) return;
+    if (!def) return null;
 
-    // CAPTURAMOS EL ID REAL (Importante para bloques nuevos)
-    let finalId = id;
-    if (!id || !document.getElementById(id)) {
-      finalId = BlockFactory.createBlock(type, x, y, id);
-    }
+    const el = BlockFactory.createBlock(type, x, y, id);
+    if (!el) return null;
 
-    const el = document.getElementById(finalId!);
-    if (el && size) {
+    const finalId = el.id;
+    if (size) {
       el.style.width = `${size.width}px`;
       el.style.height = `${size.height}px`;
     }
 
-    const instance = new def.controller(`#${finalId}`);
+    const instance = new def.controller(el);
     this.blocks.push(instance);
     
-    // Si el bloque es nuevo, lo registramos en el estado
     if (!id) {
        workspaceState.addBlock({ 
-         id: finalId!, 
+         id: finalId, 
          type, 
          position: { x, y }, 
          content: content || '' 
        });
+       document.getElementById('board')?.appendChild(el);
     }
+
+    return instance;
   }
 
   private spawnInitialTutorial() {
@@ -124,8 +141,8 @@ class Workspace {
   }
 
   private setupContextMenu() {
-    this.contextMenu = new ContextMenu((type, screenPos) => {
-      const worldPos = SpaceManager.screenToWorld(screenPos.x, screenPos.y);
+    this._contextMenu = new ContextMenu((type, screenPos) => {
+      const worldPos = GeometricEngine.screenToWorld(screenPos);
       this.spawnBlockInstance(type as BlockType, worldPos.x, worldPos.y);
     });
   }

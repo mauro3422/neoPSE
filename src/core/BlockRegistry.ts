@@ -9,6 +9,7 @@ interface BlockDefinition {
   controller: new (selector: string | HTMLElement) => Block;
   useHeader?: boolean;
   useResizer?: boolean;
+  mass: number;
 }
 
 export class BlockRegistry {

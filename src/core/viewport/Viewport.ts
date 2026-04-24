@@ -18,14 +18,39 @@ export class Viewport {
     return this.zoom;
   }
 
+  private shakeIntensity: number = 0;
+
   public setZoom(newZoom: number) {
     this.zoom = Math.min(Math.max(newZoom, APP_CONFIG.MIN_ZOOM), APP_CONFIG.MAX_ZOOM);
     this.render();
   }
 
+  public shake(intensity: number = 5, duration: number = 300) {
+    this.shakeIntensity = intensity;
+    const startTime = performance.now();
+    
+    const loop = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = 1 - (elapsed / duration);
+      
+      if (progress > 0) {
+        this.shakeIntensity = intensity * progress;
+        this.render();
+        requestAnimationFrame(loop);
+      } else {
+        this.shakeIntensity = 0;
+        this.render();
+      }
+    };
+    requestAnimationFrame(loop);
+  }
+
   private render() {
-    document.documentElement.style.setProperty('--pan-x', `${this.offset.x}px`);
-    document.documentElement.style.setProperty('--pan-y', `${this.offset.y}px`);
+    const sx = (Math.random() - 0.5) * this.shakeIntensity;
+    const sy = (Math.random() - 0.5) * this.shakeIntensity;
+
+    document.documentElement.style.setProperty('--pan-x', `${this.offset.x + sx}px`);
+    document.documentElement.style.setProperty('--pan-y', `${this.offset.y + sy}px`);
     document.documentElement.style.setProperty('--zoom', `${this.zoom}`);
   }
 }

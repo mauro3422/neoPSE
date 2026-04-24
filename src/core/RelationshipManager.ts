@@ -1,7 +1,8 @@
 import { eventBus, AppEvents } from "./EventEmitter";
-import { APP_CONFIG } from "./Constants";
-import { SpaceManager } from "./SpaceManager";
+import { IDE_CONFIG } from "./Config";
+import { GeometricEngine, Rect } from "./GeometricEngine";
 import { GeometryUtils } from "./GeometryUtils";
+import { frameTicker } from "./FrameTicker";
 
 export interface Link {
   fromId: string;
@@ -19,6 +20,9 @@ export class RelationshipManager {
   private svg: SVGSVGElement;
   private links: Link[] = [];
   private ghostPath: SVGPathElement | null = null;
+  private dirtyBlocks: Set<string> = new Set();
+  private needsFullRedraw: boolean = false;
+  private pathPool: SVGPathElement[] = [];
 
   constructor(svgId: string) {
     const svg = document.getElementById(svgId) as unknown as SVGSVGElement;
@@ -27,10 +31,36 @@ export class RelationshipManager {
 
     this.initStaticDefinitions();
 
-    eventBus.on(AppEvents.BLOCK_MOVE, (blockId: string) => this.drawLinksForBlock(blockId));
-    eventBus.on(AppEvents.VIEWPORT_CHANGE, () => this.drawAll());
-    eventBus.on(AppEvents.THEME_CHANGE, () => setTimeout(() => this.drawAll(), 100));
+    eventBus.on(AppEvents.BLOCK_MOVE, (blockId: string) => {
+      this.dirtyBlocks.add(blockId);
+      frameTicker.register(this.tick);
+    });
+
+    eventBus.on(AppEvents.VIEWPORT_CHANGE, () => {
+      this.needsFullRedraw = true;
+      // Ya usamos frameTicker, lo cual es batching por naturaleza,
+      // pero forzamos el registro aquí.
+      frameTicker.register(this.tick);
+    });
+
+    eventBus.on(AppEvents.THEME_CHANGE, () => {
+      setTimeout(() => {
+        this.needsFullRedraw = true;
+        frameTicker.register(this.tick);
+      }, 100);
+    });
   }
+
+  private tick = () => {
+    if (this.needsFullRedraw) {
+      this.drawAll();
+      this.needsFullRedraw = false;
+    } else if (this.dirtyBlocks.size > 0) {
+      this.dirtyBlocks.forEach(id => this.drawLinksForBlock(id));
+      this.dirtyBlocks.clear();
+    }
+    frameTicker.unregister(this.tick);
+  };
 
   private initStaticDefinitions() {
     if (!this.svg.querySelector('defs')) {
@@ -48,19 +78,22 @@ export class RelationshipManager {
   public addLink(fromId: string, toId: string) {
     if (this.links.some(l => l.fromId === fromId && l.toId === toId)) return;
     
-    const pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    pathElement.setAttribute("class", "link-path");
-    pathElement.setAttribute("marker-end", "url(#arrowhead)");
-    this.svg.appendChild(pathElement);
+    let pathElement = this.pathPool.pop();
+    
+    if (!pathElement) {
+      pathElement = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      pathElement.setAttribute("class", "link-path");
+      pathElement.setAttribute("marker-end", "url(#arrowhead)");
+      this.svg.appendChild(pathElement);
+    } else {
+      pathElement.style.display = ''; // Restaurar visibilidad
+    }
 
     const newLink: Link = { fromId, toId, pathElement };
     this.links.push(newLink);
     this.updatePath(newLink);
   }
 
-  /**
-   * Dibuja un "Cable Fantasma" con anclaje inteligente a bordes.
-   */
   public drawGhostLink(fromId: string, targetX: number, targetY: number, targetId?: string | null) {
     if (!this.ghostPath) {
       this.ghostPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -72,20 +105,18 @@ export class RelationshipManager {
     const fromEl = document.getElementById(fromId);
     if (!fromEl) return;
 
-    const fromRect = this.getRect(fromEl);
-    const off = APP_CONFIG.SVG_OFFSET;
+    const fromRect = GeometricEngine.getWorldRect(fromEl);
+    const off = IDE_CONFIG.GEOMETRY.SVG_OFFSET;
 
     if (targetId && document.getElementById(targetId)) {
       const toEl = document.getElementById(targetId)!;
-      const toRect = this.getRect(toEl);
+      const toRect = GeometricEngine.getWorldRect(toEl);
       const { start, end } = this.getBestAnchorPoints(fromRect, toRect);
       this.ghostPath.setAttribute("d", this.calculateBezierPath(start, end, off));
     } else {
-      // CALCULAR ANCLAJE AL AIRE (No más desde el centro)
       const fromPoints = this.getAnchorPointsForRect(fromRect);
       const mousePoint = { x: targetX, y: targetY };
       
-      // Buscamos el punto del borde más cercano al mouse
       let bestStart = fromPoints[0];
       let minDist = Infinity;
       
@@ -124,7 +155,12 @@ export class RelationshipManager {
   public removeLinksForBlock(blockId: string) {
     this.links = this.links.filter(link => {
       if (link.fromId === blockId || link.toId === blockId) {
-        link.pathElement.remove();
+        if (this.pathPool.length < 100) {
+          link.pathElement.style.display = 'none';
+          this.pathPool.push(link.pathElement);
+        } else {
+          link.pathElement.remove(); // Borrado físico si el pool está lleno
+        }
         return false;
       }
       return true;
@@ -134,18 +170,14 @@ export class RelationshipManager {
   public getConnectedComponent(rootId: string): string[] {
     const visited = new Set<string>();
     const stack = [rootId];
-    
     while (stack.length > 0) {
       const current = stack.pop()!;
       if (!visited.has(current)) {
         visited.add(current);
         const neighbors = this.getLinkedBlockIds(current);
-        neighbors.forEach(n => {
-          if (!visited.has(n)) stack.push(n);
-        });
+        neighbors.forEach(n => { if (!visited.has(n)) stack.push(n); });
       }
     }
-    
     return Array.from(visited);
   }
 
@@ -162,7 +194,7 @@ export class RelationshipManager {
     this.links.forEach(link => this.updatePath(link));
   }
 
-  private drawLinksForBlock(blockId: string) {
+  public drawLinksForBlock(blockId: string) {
     this.links
       .filter(l => l.fromId === blockId || l.toId === blockId)
       .forEach(l => this.updatePath(l));
@@ -171,17 +203,13 @@ export class RelationshipManager {
   private updatePath(link: Link) {
     const fromEl = document.getElementById(link.fromId);
     const toEl = document.getElementById(link.toId);
+    if (!fromEl || !toEl) return;
 
-    if (!fromEl || !toEl) {
-      link.pathElement.remove();
-      return;
-    }
-
-    const fromRect = this.getRect(fromEl);
-    const toRect = this.getRect(toEl);
+    const fromRect = GeometricEngine.getWorldRect(fromEl);
+    const toRect = GeometricEngine.getWorldRect(toEl);
     const { start, end } = this.getBestAnchorPoints(fromRect, toRect);
 
-    const off = APP_CONFIG.SVG_OFFSET;
+    const off = IDE_CONFIG.GEOMETRY.SVG_OFFSET;
     link.pathElement.setAttribute("d", this.calculateBezierPath(start, end, off));
   }
 
@@ -192,26 +220,7 @@ export class RelationshipManager {
     else if (side === 'bottom') point.y += curvature;
   }
 
-  private getRect(el: HTMLElement) {
-    const rect = el.getBoundingClientRect();
-    // Convertimos coordenadas de pantalla a mundo (Viewport aware)
-    const topLeft = SpaceManager.screenToWorld(rect.left, rect.top);
-    const bottomRight = SpaceManager.screenToWorld(rect.right, rect.bottom);
-    
-    const w = bottomRight.x - topLeft.x;
-    const h = bottomRight.y - topLeft.y;
-
-    return {
-      x: topLeft.x,
-      y: topLeft.y,
-      w: w,
-      h: h,
-      cx: topLeft.x + w / 2,
-      cy: topLeft.y + h / 2
-    };
-  }
-
-  private getAnchorPointsForRect(rect: any): Point[] {
+  private getAnchorPointsForRect(rect: Rect): Point[] {
     return [
       { x: rect.x + rect.w, y: rect.cy, side: 'right' },
       { x: rect.x, y: rect.cy, side: 'left' },
@@ -220,15 +229,8 @@ export class RelationshipManager {
     ];
   }
 
-  private getBestAnchorPoints(from: any, to: any): { start: Point, end: Point } {
-    const fromPoints = this.getAnchorPointsForRect(from);
-    const toPoints = [
-      { x: to.x, y: to.cy, side: 'left' },
-      { x: to.x + to.w, y: to.cy, side: 'right' },
-      { x: to.cx, y: to.y, side: 'top' },
-      { x: to.cx, y: to.y + to.h, side: 'bottom' }
-    ];
-    const pair = GeometryUtils.findClosestPair(fromPoints, toPoints);
+  private getBestAnchorPoints(from: Rect, to: Rect): { start: Point, end: Point } {
+    const pair = GeometryUtils.findClosestPair(this.getAnchorPointsForRect(from), this.getAnchorPointsForRect(to));
     return { start: pair.p1, end: pair.p2 };
   }
 }

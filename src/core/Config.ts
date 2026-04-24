@@ -1,0 +1,21 @@
+export const IDE_CONFIG = {
+  TRANSITIONS: {
+    DEFAULT_SPEED: "0.2s",
+    SUCTION_DURATION: 800,
+    FOLDER_PULSE: 400
+  },
+  GEOMETRY: {
+    GRID_SIZE: 40,
+    MAX_ZOOM: 3,
+    MIN_ZOOM: 0.2,
+    SVG_OFFSET: 10000
+  },
+  PHYSICS: {
+    STAGGER_DELAY: 60,
+    DRAG_THRESHOLD: 5
+  },
+  UI: {
+    CONTEXT_MENU_WIDTH: 180,
+    HEADER_HEIGHT: 60
+  }
+};

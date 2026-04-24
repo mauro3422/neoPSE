@@ -1,10 +1,20 @@
-import { Vector2 } from "../Constants";
+import { Vector2 } from "../core/Constants";
 
 export enum BlockType {
   PSEUDOCODE = 'pseudocode',
   NOTE = 'note',
   ASSISTANT = 'assistant',
   FOLDER = 'folder'
+}
+
+export interface BlockDefinition {
+  type: BlockType;
+  title: string;
+  className: string;
+  structureHtml: string;
+  useHeader?: boolean;
+  useResizer?: boolean;
+  mass?: number; // 1 = estándar, >1 = pesado, <1 = ligero
 }
 
 export interface BlockData {

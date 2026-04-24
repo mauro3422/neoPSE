@@ -4,7 +4,7 @@ import { Draggable, dragManager } from "../core/input/DragManager";
 import { Resizable, resizeManager } from "../core/input/ResizeManager";
 import { eventBus, AppEvents } from "../core/EventEmitter";
 import { workspaceState } from "../core/state/WorkspaceState";
-import { SpaceManager } from "../core/SpaceManager";
+import { GeometricEngine } from "../core/GeometricEngine";
 import { SelectionManager } from "../core/SelectionManager";
 import { connectionManager } from "../core/ConnectionManager";
 
@@ -69,7 +69,7 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
   }
 
   public onDragStart() {
-    const pos = SpaceManager.getElementPos(this.element);
+    const pos = GeometricEngine.getElementPos(this.element);
     this.initialX = pos.x;
     this.initialY = pos.y;
     SelectionManager.select(this.element);
@@ -78,7 +78,7 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
   }
 
   public onDragMove(dx: number, dy: number) {
-    SpaceManager.setElementPos(this.element, {
+    GeometricEngine.setElementPos(this.element, {
       x: this.initialX + dx,
       y: this.initialY + dy
     });
@@ -147,4 +147,15 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
   }
 
   public abstract getContent(): string;
+
+  public serialize(): any {
+    const pos = GeometricEngine.getElementPos(this.element);
+    return {
+      id: this.id,
+      type: this.id.split('_')[0],
+      position: pos,
+      size: { width: this.element.offsetWidth, height: this.element.offsetHeight },
+      content: this.getContent()
+    };
+  }
 }

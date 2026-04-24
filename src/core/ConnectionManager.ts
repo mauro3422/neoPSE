@@ -1,6 +1,6 @@
 import { relationshipManager } from "./RelationshipManager";
 import { workspaceState } from "./state/WorkspaceState";
-import { SpaceManager } from "./SpaceManager";
+import { GeometricEngine } from "./GeometricEngine";
 
 /**
  * Gestiona el proceso de creación de conexiones entre componentes.
@@ -28,7 +28,7 @@ export class ConnectionManager {
     window.addEventListener('mousemove', (e) => {
       if (!this.isLinking || !this.sourceId) return;
 
-      const worldPos = SpaceManager.screenToWorld(e.clientX, e.clientY);
+      const worldPos = GeometricEngine.screenToWorld({ x: e.clientX, y: e.clientY });
       
       // Detectar si el mouse está sobre un bloque (Hover Detection)
       const target = e.target as HTMLElement;

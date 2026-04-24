@@ -2,6 +2,14 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo y en los registros detallados de versión.
 
+## [v0.6.0] - 2026-04-24
+### "Mauro Mode & Deep Work"
+- **Protocolo de Tiempo Consciente**: Integración de reglas de anclaje temporal en `GEMINI.md`.
+- **Workflows Globales**: Implementación de comandos `/time` y `/mauro-mode-audit` para mantenimiento de sesión.
+- **Skill de Hardening**: Nueva capacidad `deep-work` con auditoría automatizada (`audit.ps1`).
+- **Green Build Standards**: Requisito obligatorio de `tsc --noEmit` para dar por terminada cualquier tarea.
+- **Skills Index**: Centralización y registro de todas las capacidades del agente.
+
 ## [v0.5.0] - 2026-04-24
 ### "Quantum Flux & Modules"
 - **Sistema de Módulos (Folder)**: Implementación de contenedores con estética "Pure Icon" Glassmorphism.

@@ -269,3 +269,12 @@ body.linking-mode .block { cursor: crosshair !important; border-style: dashed; }
 
 .chat-input-area { padding: 12px; border-top: 1px solid var(--block-border); }
 .chat-input { width: 100%; background: rgba(0,0,0,0.1); border: 1px solid var(--block-border); border-radius: 6px; padding: 8px; color: white; outline: none; }
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: var(--z-hud);
+  filter: blur(1px) drop-shadow(0 0 5px currentColor);
+}
