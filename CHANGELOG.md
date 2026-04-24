@@ -1,10 +1,20 @@
-# NeoPSE Changelog Index
+# NeoPSE - Registro de Cambios
 
-Este archivo sirve como índice y resumen de la evolución de NeoPSE. Los detalles técnicos de cada versión se encuentran en la carpeta `docs/changelogs/`.
+Todos los cambios notables en este proyecto serán documentados en este archivo y en los registros detallados de versión.
+
+## [v0.2.0] - 2026-04-24
+### "Modular Engine"
+- Arquitectura desacoplada basada en registros.
+- Motor geométrico unificado.
+- Persistencia y rehidratación de workspace.
+- [Ver registro detallado](./docs/changelogs/v0.2.0.md)
 
 ## [v0.1.0] - 2026-04-23
-**Resumen:** Inicialización del proyecto, arquitectura robusta y sistema de canvas infinito.
-- [Ver detalles técnicos](docs/changelogs/v0.1.0.md)
+### Hardening de Motor de Arrastre
+- Centralización de eventos de Drag & Drop.
+- Motor de enlaces heurístico.
+- Soporte para zoom y paneo infinito.
+- [Ver registro detallado](./docs/changelogs/v0.1.0.md)
 
 ---
-*Última actualización: 2026-04-23*
+*NeoPSE: El IDE de pseudocódigo robusto.*

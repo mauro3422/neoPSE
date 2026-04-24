@@ -1,11 +1,8 @@
-import { Vector2 } from "./ViewportController";
+import { Vector2, APP_CONFIG } from "../Constants";
 
 export class Viewport {
   private offset: Vector2 = { x: 0, y: 0 };
   private zoom: number = 1.0;
-  
-  private readonly MIN_ZOOM = 0.2;
-  private readonly MAX_ZOOM = 5.0;
 
   public setOffset(x: number, y: number) {
     this.offset.x = x;
@@ -22,7 +19,7 @@ export class Viewport {
   }
 
   public setZoom(newZoom: number) {
-    this.zoom = Math.min(Math.max(newZoom, this.MIN_ZOOM), this.MAX_ZOOM);
+    this.zoom = Math.min(Math.max(newZoom, APP_CONFIG.MIN_ZOOM), APP_CONFIG.MAX_ZOOM);
     this.render();
   }
 

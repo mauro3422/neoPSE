@@ -1,29 +1,25 @@
-export type Theme = 'obsidian' | 'nordic';
+import { eventBus, AppEvents } from "./EventEmitter";
+import { workspaceState } from "./state/WorkspaceState";
 
 export class ThemeManager {
-  private currentTheme: Theme = 'obsidian';
+  private themes = ['obsidian', 'nordic', 'crimson'];
+  private currentTheme: string;
 
   constructor() {
+    this.currentTheme = workspaceState.getTheme();
     this.applyTheme(this.currentTheme);
   }
 
   public toggleTheme() {
-    this.currentTheme = this.currentTheme === 'obsidian' ? 'nordic' : 'obsidian';
+    const currentIndex = this.themes.indexOf(this.currentTheme);
+    const nextIndex = (currentIndex + 1) % this.themes.length;
+    this.currentTheme = this.themes[nextIndex];
     this.applyTheme(this.currentTheme);
+    eventBus.emit(AppEvents.THEME_CHANGE, this.currentTheme);
   }
 
-  public setTheme(theme: Theme) {
-    this.currentTheme = theme;
-    this.applyTheme(this.currentTheme);
-  }
-
-  private applyTheme(theme: Theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    console.log(`Theme applied: ${theme}`);
-  }
-
-  public getCurrentTheme(): Theme {
-    return this.currentTheme;
+  private applyTheme(theme: string) {
+    document.body.setAttribute('data-theme', theme);
   }
 }
 

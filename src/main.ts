@@ -1,13 +1,20 @@
 import "./style.css";
 import { themeManager } from "./core/theme-manager";
-import { Block } from "./components/Block";
+import { AssistantBlock } from "./components/AssistantBlock";
 import { ViewportController } from "./core/viewport/ViewportController";
 import { relationshipManager } from "./core/RelationshipManager";
 import { BlockFactory } from "./core/BlockFactory";
+import { CollisionSystem } from "./core/CollisionSystem";
+import { eventBus, AppEvents } from "./core/EventEmitter";
+import { Block } from "./components/Block";
+import { workspaceState } from "./core/state/WorkspaceState";
+import { BlockType } from "./types";
+import { InputSystem } from "./core/InputSystem";
+import { BlockRegistry } from "./core/BlockRegistry";
+import { SpaceManager } from "./core/SpaceManager";
 
 class Workspace {
   private blocks: Block[] = [];
-  private viewportController: ViewportController | null = null;
 
   constructor() {
     this.init();
@@ -15,37 +22,102 @@ class Workspace {
 
   private init() {
     try {
-      this.viewportController = new ViewportController('board');
+      InputSystem.init();
+      new ViewportController('board');
+      CollisionSystem.init();
 
-      // Initialize initial blocks
-      ['#fn-main', '#fn-sum', '#note-context', '#assistant-panel'].forEach(s => {
-        this.blocks.push(new Block(s));
-      });
+      new AssistantBlock('#assistant-panel');
 
-      relationshipManager.addLink('fn-main', 'fn-sum');
-      relationshipManager.addLink('note-context', 'fn-sum');
-
+      this.rehydrateWorkspace();
       this.setupThemeToggle();
       this.setupCreationButtons();
+      this.setupProjectTitle();
       
-      console.log('NeoPSE Workspace 2.1 (Interactive Links + Spawner) Initialized');
+      console.log('NeoPSE Workspace 3.2 (Bugfix Ready) Initialized');
     } catch (error) {
       console.error('Failed to initialize Workspace:', error);
     }
   }
 
-  private setupCreationButtons() {
-    const addPseudoBtn = document.getElementById("add-pseudo");
-    const addNoteBtn = document.getElementById("add-note");
+  private rehydrateWorkspace() {
+    const data = workspaceState.getData();
+    if (data.blocks.length === 0) {
+      this.spawnInitialTutorial();
+      return;
+    }
 
-    addPseudoBtn?.addEventListener("click", () => {
-      const id = BlockFactory.createPseudocodeBlock(200, 200);
-      this.blocks.push(new Block(`#${id}`));
+    data.blocks
+      .filter(b => b.type !== BlockType.ASSISTANT)
+      .forEach(b => this.spawnBlockInstance(b.type, b.position.x, b.position.y, b.id, b.content));
+    
+    data.links.forEach(l => relationshipManager.addLink(l.fromId, l.toId));
+  }
+
+  private spawnBlockInstance(type: BlockType, x: number, y: number, id?: string, content?: string) {
+    const def = BlockRegistry.getDefinition(type);
+    if (!def) return;
+
+    // CAPTURAMOS EL ID REAL (Importante para bloques nuevos)
+    let finalId = id;
+    if (!id || !document.getElementById(id)) {
+      finalId = BlockFactory.createBlock(type, x, y, id);
+    }
+
+    const instance = new def.controller(`#${finalId}`);
+    this.blocks.push(instance);
+    
+    // Si el bloque es nuevo, lo registramos en el estado
+    if (!id) {
+       workspaceState.addBlock({ 
+         id: finalId!, 
+         type, 
+         position: { x, y }, 
+         content: content || '' 
+       });
+    }
+  }
+
+  private spawnInitialTutorial() {
+    const tutorialBlocks = [
+      { id: 'fn-main', type: BlockType.PSEUDOCODE, x: 100, y: 100 },
+      { id: 'fn-sum', type: BlockType.PSEUDOCODE, x: 700, y: 100 },
+      { id: 'note-context', type: BlockType.NOTE, x: 400, y: 500 }
+    ];
+
+    tutorialBlocks.forEach(b => {
+      this.spawnBlockInstance(b.type, b.x, b.y, b.id);
+    });
+    
+    workspaceState.addLink('fn-main', 'fn-sum');
+    workspaceState.addLink('note-context', 'fn-sum');
+    relationshipManager.addLink('fn-main', 'fn-sum');
+    relationshipManager.addLink('note-context', 'fn-sum');
+  }
+
+  private setupProjectTitle() {
+    const titleEl = document.querySelector('.project-info');
+    if (titleEl) {
+      titleEl.setAttribute('contenteditable', 'true');
+    }
+  }
+
+  private setupCreationButtons() {
+    document.getElementById('add-pseudo')?.addEventListener("click", () => {
+      const center = SpaceManager.getViewportCenter();
+      this.spawnBlockInstance(BlockType.PSEUDOCODE, center.x, center.y);
     });
 
-    addNoteBtn?.addEventListener("click", () => {
-      const id = BlockFactory.createNoteBlock(200, 400);
-      this.blocks.push(new Block(`#${id}`));
+    document.getElementById('add-note')?.addEventListener("click", () => {
+      const center = SpaceManager.getViewportCenter();
+      this.spawnBlockInstance(BlockType.NOTE, center.x, center.y);
+    });
+
+    document.getElementById("recenter-btn")?.addEventListener("click", () => {
+      import("./core/viewport/Viewport").then(({ viewport }) => {
+        viewport.setZoom(1.0);
+        viewport.setOffset(0, 0);
+        eventBus.emit(AppEvents.VIEWPORT_CHANGE, undefined as any);
+      });
     });
   }
 
@@ -54,7 +126,6 @@ class Workspace {
     if (toggleBtn) {
       toggleBtn.addEventListener("click", () => {
         themeManager.toggleTheme();
-        setTimeout(() => relationshipManager.draw(), 300);
       });
     }
   }

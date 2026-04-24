@@ -1,106 +1,110 @@
-import { APP_CONFIG } from "../core/Constants";
 import { relationshipManager } from "../core/RelationshipManager";
+import { Draggable, dragManager } from "../core/input/DragManager";
+import { eventBus, AppEvents } from "../core/EventEmitter";
+import { workspaceState } from "../core/state/WorkspaceState";
+import { SpaceManager } from "../core/SpaceManager";
+import { SelectionManager } from "../core/SelectionManager";
+import { connectionManager } from "../core/ConnectionManager";
 
 export abstract class UIComponent {
   protected element: HTMLElement;
+  protected id: string;
+
   constructor(selector: string | HTMLElement) {
     const el = typeof selector === 'string' ? document.querySelector<HTMLElement>(selector) : selector;
     if (!el) throw new Error(`Component not found`);
     this.element = el;
+    this.id = el.id;
+  }
+
+  public getElement() { return this.element; }
+
+  protected getStateData() {
+    return workspaceState.getData().blocks.find(b => b.id === this.id);
+  }
+
+  protected syncState(content: string) {
+    workspaceState.updateBlockContent(this.id, content);
   }
 }
 
-export class Block extends UIComponent {
-  private header: HTMLElement;
-  private isDragging: boolean = false;
-  private startX: number = 0;
-  private startY: number = 0;
-  private initialLeft: number = 0;
-  private initialTop: number = 0;
-
-  private static linkingSource: string | null = null;
+export abstract class Block extends UIComponent implements Draggable {
+  protected header: HTMLElement;
+  private initialX: number = 0;
+  private initialY: number = 0;
 
   constructor(selector: string | HTMLElement) {
     super(selector);
     const header = this.element.querySelector<HTMLElement>('.block-header');
-    if (!header) throw new Error(`Header not found`);
+    if (!header) throw new Error(`Header not found for block ${this.id}`);
     this.header = header;
-    this.initEvents();
-    this.initActions();
-  }
-
-  private initEvents() {
-    this.header.addEventListener('mousedown', this.onMouseDown.bind(this));
-    window.addEventListener('mousemove', this.onMouseMove.bind(this));
-    window.addEventListener('mouseup', this.onMouseUp.bind(this));
     
-    // Click on block to complete a link
-    this.element.addEventListener('click', (e) => {
-      if (Block.linkingSource && Block.linkingSource !== this.element.id) {
-        relationshipManager.addLink(Block.linkingSource, this.element.id);
-        Block.linkingSource = null;
-        document.body.classList.remove('linking-mode');
-        e.stopPropagation();
-      }
-    });
+    dragManager.register(this, this.header);
+    this.initBaseEvents();
   }
 
-  private initActions() {
-    const linkBtn = this.element.querySelector('.link-btn');
-    const closeBtn = this.element.querySelector('.close-btn');
-
-    linkBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      Block.linkingSource = this.element.id;
-      document.body.classList.add('linking-mode');
-      console.log(`Linking source set to: ${this.element.id}`);
-    });
-
-    closeBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.element.remove();
-      relationshipManager.draw(); // Clean up links
-    });
-  }
-
-  private onMouseDown(e: MouseEvent) {
-    if ((e.target as HTMLElement).classList.contains('link-btn') || (e.target as HTMLElement).classList.contains('close-btn')) return;
-
-    e.stopPropagation();
-    this.isDragging = true;
-    this.startX = e.clientX;
-    this.startY = e.clientY;
-    this.initialLeft = this.element.offsetLeft;
-    this.initialTop = this.element.offsetTop;
-
-    this.bringToFront();
+  public onDragStart() {
+    const pos = SpaceManager.getElementPos(this.element);
+    this.initialX = pos.x;
+    this.initialY = pos.y;
+    SelectionManager.select(this.element);
+    this.element.classList.add('is-dragging');
     this.header.style.cursor = 'grabbing';
-    document.body.style.userSelect = 'none';
   }
 
-  private onMouseMove(e: MouseEvent) {
-    if (!this.isDragging) return;
-    
-    const zoom = parseFloat(document.documentElement.style.getPropertyValue('--zoom')) || 1;
-    const dx = (e.clientX - this.startX) / zoom;
-    const dy = (e.clientY - this.startY) / zoom;
-
-    this.element.style.left = `${this.initialLeft + dx}px`;
-    this.element.style.top = `${this.initialTop + dy}px`;
-
-    window.dispatchEvent(new CustomEvent('blockMove'));
+  public onDragMove(dx: number, dy: number) {
+    SpaceManager.setElementPos(this.element, {
+      x: this.initialX + dx,
+      y: this.initialY + dy
+    });
+    eventBus.emit(AppEvents.BLOCK_MOVE, this.id);
   }
 
-  private onMouseUp() {
-    if (!this.isDragging) return;
-    this.isDragging = false;
+  public onDragEnd() {
+    this.element.classList.remove('is-dragging');
     this.header.style.cursor = 'grab';
-    document.body.style.userSelect = '';
   }
 
-  private bringToFront() {
-    const allBlocks = document.querySelectorAll<HTMLElement>('.block');
-    allBlocks.forEach(b => b.style.zIndex = APP_CONFIG.Z_INDEX_INACTIVE);
-    this.element.style.zIndex = APP_CONFIG.Z_INDEX_ACTIVE;
+  private initBaseEvents() {
+    this.element.addEventListener('mousedown', () => {
+      SelectionManager.select(this.element);
+    }, { capture: true });
+
+    this.element.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const btn = target.closest('button');
+      
+      if (!btn) {
+        // Delegar lógica de enlace al ConnectionManager (SOLID)
+        if (connectionManager.getIsLinking()) {
+          connectionManager.complete(this.id);
+          e.stopPropagation();
+        }
+        return;
+      }
+
+      if (btn.classList.contains('link-btn')) this.handleLinkClick(e);
+      if (btn.classList.contains('close-btn')) this.destroy(e);
+    });
+
+    this.element.addEventListener('input', () => {
+      this.syncState(this.getContent());
+    });
   }
+
+  private handleLinkClick(e: Event) {
+    e.stopPropagation();
+    this.element.classList.add('is-linking-source');
+    connectionManager.start(this.id);
+  }
+
+  private destroy(e: Event) {
+    e.stopPropagation();
+    this.element.remove();
+    workspaceState.removeBlock(this.id);
+    relationshipManager.removeLinksForBlock(this.id);
+    SelectionManager.clear();
+  }
+
+  public abstract getContent(): string;
 }

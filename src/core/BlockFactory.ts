@@ -1,57 +1,42 @@
-import { Block } from "../components/Block";
+import { BlockRegistry } from "./BlockRegistry";
+import { BlockType } from "../types";
 
 export class BlockFactory {
-  private static counter = 0;
+  private static readonly TEMPLATE_HEADER = (title: string) => `
+    <div class="block-header">
+      <span class="block-title">${title}</span>
+      <div class="header-actions">
+        <button class="link-btn" title="Enlazar">🔗</button>
+        <button class="close-btn" title="Cerrar">×</button>
+      </div>
+    </div>
+  `;
 
-  public static createPseudocodeBlock(x: number, y: number): string {
-    const id = `block-${this.counter++}`;
+  /**
+   * Crea un bloque inyectando la estructura definida en el Registro.
+   * La Factory es ahora agnóstica al contenido (SOLID).
+   */
+  public static createBlock(type: BlockType, x: number, y: number, customId?: string): string {
+    const def = BlockRegistry.getDefinition(type);
+    if (!def) throw new Error(`Block type ${type} not registered`);
+
+    const id = customId || `${type}-${Date.now()}`;
+
     const html = `
-      <div id="${id}" class="block world-block editor-block" style="top: ${y}px; left: ${x}px;">
-        <div class="block-header">
-          <span class="block-title">Nueva Función</span>
-          <div class="header-actions">
-            <button class="link-btn" title="Enlazar">🔗</button>
-            <button class="close-btn" title="Cerrar">×</button>
-          </div>
-        </div>
-        <div class="block-content">
-          <div class="pseudocode" contenteditable="true">Algoritmo NuevaFuncion
-  // Escribe aquí...
-FinAlgoritmo</div>
-        </div>
+      <div id="${id}" class="block world-block ${def.className}" style="top: ${y}px; left: ${x}px;">
+        ${this.TEMPLATE_HEADER(def.title)}
+        <div class="block-content">${def.structureHtml}</div>
       </div>
     `;
     
-    const canvas = document.getElementById('canvas');
-    if (canvas) {
-      canvas.insertAdjacentHTML('beforeend', html);
-      return id;
-    }
-    throw new Error("Canvas not found");
+    this.appendToCanvas(html);
+    return id;
   }
 
-  public static createNoteBlock(x: number, y: number): string {
-    const id = `block-${this.counter++}`;
-    const html = `
-      <div id="${id}" class="block world-block notes-block" style="top: ${y}px; left: ${x}px;">
-        <div class="block-header">
-          <span class="block-title">Nota</span>
-          <div class="header-actions">
-            <button class="link-btn" title="Enlazar">🔗</button>
-            <button class="close-btn" title="Cerrar">×</button>
-          </div>
-        </div>
-        <div class="block-content">
-          <textarea class="notes-area" placeholder="Escribe algo..."></textarea>
-        </div>
-      </div>
-    `;
-    
-    const canvas = document.getElementById('canvas');
+  private static appendToCanvas(html: string) {
+    const canvas = document.getElementById("canvas");
     if (canvas) {
       canvas.insertAdjacentHTML('beforeend', html);
-      return id;
     }
-    throw new Error("Canvas not found");
   }
 }

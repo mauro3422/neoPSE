@@ -17,24 +17,24 @@
       <div class="actions" style="display: flex; gap: 8px;">
         <button id="add-pseudo" class="btn-secondary" title="Nuevo Pseudocódigo">+ Código</button>
         <button id="add-note" class="btn-secondary" title="Nueva Nota">+ Nota</button>
+        <button id="recenter-btn" class="btn-secondary" title="Centrar Vista">🏠</button>
         <button id="theme-toggle" class="btn-secondary">Tema</button>
         <button id="run-btn" class="btn-primary">Ejecutar</button>
       </div>
     </header>
 
-    <aside id="assistant-panel" class="block hud-layer chat-block">
+    <!-- Asistente IA (Fijo en Interfaz) -->
+    <aside id="assistant-panel" class="hud-layer assistant-sidebar">
       <div class="block-header">
         <span class="block-title">Asistente IA</span>
       </div>
-      <div class="block-content">
+      <div class="block-content chat-block">
         <div class="chat-messages">
-          <div class="message ai">
-            Usa la rueda del mouse para hacer zoom centrado en tu cursor. He activado la visualización de enlaces entre bloques.
-          </div>
+          <div class="message ai">Hola. Soy tu asistente de NeoPSE. ¿En qué puedo ayudarte hoy?</div>
         </div>
-      </div>
-      <div class="chat-input-area">
-        <input type="text" placeholder="Pregunta algo..." class="chat-input">
+        <div class="chat-input-area">
+          <input type="text" placeholder="Pregunta algo..." class="chat-input">
+        </div>
       </div>
     </aside>
 
@@ -42,32 +42,10 @@
     <main id="board" class="board">
       <div id="canvas-container">
         <svg id="relationship-layer">
-          <!-- Enlaces dinámicos aquí -->
+          <!-- Enlaces dinámicos -->
         </svg>
-        
         <div id="canvas" class="canvas">
-          <!-- Bloques de Pseudocódigo -->
-          <div id="fn-main" class="block world-block editor-block" style="top: 100px; left: 100px;">
-            <div class="block-header"><span class="block-title">Principal</span></div>
-            <div class="block-content"><div class="pseudocode">Algoritmo Principal
-  Sumar(5, 10)
-FinAlgoritmo</div></div>
-          </div>
-
-          <div id="fn-sum" class="block world-block editor-block" style="top: 100px; left: 700px;">
-            <div class="block-header"><span class="block-title">Función: Sumar</span></div>
-            <div class="block-content"><div class="pseudocode">Funcion Sumar(a, b)
-  resultado &lt;- a + b
-  Retornar resultado
-FinFuncion</div></div>
-          </div>
-
-          <div id="note-context" class="block world-block notes-block" style="top: 500px; left: 400px;">
-            <div class="block-header"><span class="block-title">Contexto de Suma</span></div>
-            <div class="block-content">
-              <textarea class="notes-area">Esta nota explica por qué usamos la función Sumar en el algoritmo Principal.</textarea>
-            </div>
-          </div>
+          <!-- Bloques dinámicos -->
         </div>
       </div>
     </main>

@@ -1,14 +1,20 @@
 export const APP_CONFIG = {
-  VERSION: '0.1.0',
-  DEFAULT_THEME: 'obsidian',
+  Z_INDEX_HUD: "5000",
+  Z_INDEX_BLOCK_ACTIVE: "1000",
+  Z_INDEX_BLOCK_INACTIVE: "100",
+  Z_INDEX_RELATIONSHIPS: "5",
+  
+  MIN_ZOOM: 0.2,
+  MAX_ZOOM: 5.0,
+  
+  SVG_INFINITE_SIZE: 100000,
+  SVG_OFFSET: 50000,
+  
   GRID_SIZE: 40,
-  Z_INDEX_ACTIVE: '10',
-  Z_INDEX_INACTIVE: '1',
-} as const;
+  STORAGE_KEY: 'neopse_workspace_data'
+};
 
-export const BLOCK_TYPES = {
-  EDITOR: 'editor',
-  NOTES: 'notes',
-  CHAT: 'chat',
-  DIAGRAM: 'diagram',
-} as const;
+export interface Vector2 {
+  x: number;
+  y: number;
+}

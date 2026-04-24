@@ -1,43 +1,38 @@
 import { viewport } from "./Viewport";
+import { Draggable, dragManager } from "../input/DragManager";
+import { eventBus, AppEvents } from "../EventEmitter";
+import { Vector2 } from "../Constants";
+import { SelectionManager } from "../SelectionManager";
 
-export class ViewportController {
-  private isPanning: boolean = false;
-  private startX: number = 0;
-  private startY: number = 0;
-  private initialOffset = { x: 0, y: 0 };
+export class ViewportController implements Draggable {
+  private board: HTMLElement;
+  private initialOffset: Vector2 = { x: 0, y: 0 };
 
   constructor(targetId: string) {
     const target = document.getElementById(targetId);
-    if (!target) return;
+    if (!target) {
+      throw new Error(`Viewport target ${targetId} not found`);
+    }
 
-    target.addEventListener('mousedown', this.onMouseDown.bind(this));
-    window.addEventListener('mousemove', this.onMouseMove.bind(this));
-    window.addEventListener('mouseup', this.onMouseUp.bind(this));
-    target.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
+    this.board = target;
+    dragManager.register(this, this.board);
+    this.board.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
   }
 
-  private onMouseDown(e: MouseEvent) {
-    const target = e.target as HTMLElement;
-    if (target.id !== 'board' && target.id !== 'canvas' && !target.classList.contains('canvas')) return;
+  public getElement() { return this.board; }
 
-    this.isPanning = true;
-    this.startX = e.clientX;
-    this.startY = e.clientY;
+  public onDragStart() {
+    SelectionManager.clear();
     this.initialOffset = viewport.getOffset();
   }
 
-  private onMouseMove(e: MouseEvent) {
-    if (!this.isPanning) return;
-
-    const dx = e.clientX - this.startX;
-    const dy = e.clientY - this.startY;
-
-    viewport.setOffset(this.initialOffset.x + dx, this.initialOffset.y + dy);
+  public onDragMove(dx: number, dy: number) {
+    const zoom = viewport.getZoom();
+    viewport.setOffset(this.initialOffset.x + dx * zoom, this.initialOffset.y + dy * zoom);
+    eventBus.emit(AppEvents.VIEWPORT_CHANGE);
   }
 
-  private onMouseUp() {
-    this.isPanning = false;
-  }
+  public onDragEnd() {}
 
   private onWheel(e: WheelEvent) {
     e.preventDefault();
@@ -47,12 +42,10 @@ export class ViewportController {
     const oldZoom = viewport.getZoom();
     const newZoom = oldZoom * (1 + delta * zoomIntensity);
 
-    // Zoom centered on mouse position
     const offset = viewport.getOffset();
     const mouseX = e.clientX;
     const mouseY = e.clientY;
 
-    // Math to keep mouse over the same world-space coordinate
     const dx = (mouseX - offset.x) / oldZoom;
     const dy = (mouseY - offset.y) / oldZoom;
 
@@ -64,7 +57,6 @@ export class ViewportController {
       mouseY - dy * actualNewZoom
     );
 
-    // Dispatch event for other components (like links) to update
-    window.dispatchEvent(new CustomEvent('viewportChange'));
+    eventBus.emit(AppEvents.VIEWPORT_CHANGE);
   }
 }
