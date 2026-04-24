@@ -8,7 +8,7 @@ export const IDE_CONFIG = {
     GRID_SIZE: 40,
     MAX_ZOOM: 3,
     MIN_ZOOM: 0.2,
-    SVG_OFFSET: 10000
+    SVG_OFFSET: 50000
   },
   PHYSICS: {
     STAGGER_DELAY: 60,

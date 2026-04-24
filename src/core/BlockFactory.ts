@@ -12,7 +12,7 @@ export class BlockFactory {
     const finalId = id || `block_${Math.random().toString(36).substr(2, 9)}`;
     const el = document.createElement('div');
     el.id = finalId;
-    el.classList.add('world-block', definition.className);
+    el.classList.add('world-block', 'block', definition.className);
     el.style.left = `${x}px`;
     el.style.top = `${y}px`;
     el.innerHTML = definition.structureHtml;

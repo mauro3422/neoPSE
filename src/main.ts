@@ -56,16 +56,14 @@ class Workspace {
     }
 
     const fragment = document.createDocumentFragment();
-    const board = document.getElementById('board');
+    const canvas = document.getElementById('canvas');
 
     data.blocks
       .filter(b => b.type !== BlockType.ASSISTANT)
       .forEach(b => {
         const instance = this.spawnBlockInstance(b.type, b.position.x, b.position.y, b.id, b.content, b.size);
-        if (instance) fragment.appendChild(instance.getElement());
+        if (instance && canvas) canvas.appendChild(instance.getElement());
       });
-    
-    if (board) board.appendChild(fragment);
     data.links.forEach(l => relationshipManager.addLink(l.fromId, l.toId));
   }
 
@@ -100,7 +98,7 @@ class Workspace {
          position: { x, y }, 
          content: content || '' 
        });
-       document.getElementById('board')?.appendChild(el);
+       document.getElementById('canvas')?.appendChild(el);
     }
 
     return instance;
