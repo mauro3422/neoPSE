@@ -2,6 +2,15 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo y en los registros detallados de versión.
 
+## [v0.5.0] - 2026-04-24
+### "Quantum Flux & Modules"
+- **Sistema de Módulos (Folder)**: Implementación de contenedores con estética "Pure Icon" Glassmorphism.
+- **Motor de Física Gravitacional**: Animación de succión basada en coordenadas reales (succión de fideo).
+- **Succión Recursiva en Cadena**: Algoritmo que detecta redes completas de bloques y los absorbe en secuencia elástica.
+- **Redibujado en Tiempo Real**: Los cables siguen dinámicamente a los bloques durante las animaciones de succión.
+- **Hardening de Arquitectura**: Resolución de dependencias circulares y desacoplamiento de registros.
+- **Fixes**: Bloqueo de traducción automática de Chrome y limpieza de handles de resize en iconos.
+
 ## [v0.4.0] - 2026-04-24
 ### "Advanced Interaction"
 - **Menú Contextual**: Creación dinámica de bloques en el punto de clic.

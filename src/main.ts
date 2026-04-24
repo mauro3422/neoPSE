@@ -11,8 +11,11 @@ import { workspaceState } from "./core/state/WorkspaceState";
 import { BlockType } from "./types";
 import { InputSystem } from "./core/InputSystem";
 import { BlockRegistry } from "./core/BlockRegistry";
+import { initBlockRegistry } from "./core/BlocksRegistration";
 import { SpaceManager } from "./core/SpaceManager";
 import { ContextMenu } from "./components/ContextMenu";
+
+initBlockRegistry();
 
 class Workspace {
   private blocks: Block[] = [];

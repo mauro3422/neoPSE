@@ -21,10 +21,11 @@ export class BlockFactory {
     if (!def) throw new Error(`Block type ${type} not registered`);
 
     const id = customId || `${type}-${Date.now()}`;
+    const headerHtml = def.useHeader !== false ? this.TEMPLATE_HEADER(def.title) : '';
 
     const html = `
       <div id="${id}" class="block world-block ${def.className}" style="top: ${y}px; left: ${x}px;">
-        ${this.TEMPLATE_HEADER(def.title)}
+        ${headerHtml}
         <div class="block-content">${def.structureHtml}</div>
       </div>
     `;

@@ -1,4 +1,5 @@
 import { relationshipManager } from "../core/RelationshipManager";
+import { BlockRegistry } from "../core/BlockRegistry";
 import { Draggable, dragManager } from "../core/input/DragManager";
 import { Resizable, resizeManager } from "../core/input/ResizeManager";
 import { eventBus, AppEvents } from "../core/EventEmitter";
@@ -38,20 +39,32 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
   constructor(selector: string | HTMLElement) {
     super(selector);
     const header = this.element.querySelector<HTMLElement>('.block-header');
-    if (!header) throw new Error(`Header not found for block ${this.id}`);
-    this.header = header;
-
-    // Crear tirador de resize dinámicamente si no existe
-    let resizer = this.element.querySelector<HTMLElement>('.resizer');
-    if (!resizer) {
-      resizer = document.createElement('div');
-      resizer.className = 'resizer';
-      this.element.appendChild(resizer);
-    }
-    this.resizer = resizer;
+    this.header = header || null as any;
     
-    dragManager.register(this, this.header);
-    resizeManager.register(this, this.resizer);
+    if (this.header) {
+      dragManager.register(this, this.header);
+    } else {
+      // Si no hay header, el cuerpo entero es el handle de drag
+      dragManager.register(this, this.element);
+    }
+
+    // Obtener definición para ver si usa resizer
+    const type = this.id.split('-')[0]; // Heurística simple para el tipo
+    const def = BlockRegistry.getDefinition(type as any);
+
+    if (def && def.useResizer !== false) {
+      let resizer = this.element.querySelector<HTMLElement>('.resizer');
+      if (!resizer) {
+        resizer = document.createElement('div');
+        resizer.className = 'resizer';
+        this.element.appendChild(resizer);
+      }
+      this.resizer = resizer;
+      resizeManager.register(this, this.resizer);
+    } else {
+      this.resizer = null as any;
+    }
+    
     this.initBaseEvents();
   }
 

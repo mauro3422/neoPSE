@@ -1,6 +1,5 @@
 import { BlockType } from "../types";
-import { Block } from "../components/Block";
-import { EditorBlock, NoteBlock } from "../components/SpecializedBlocks";
+import type { Block } from "../components/Block";
 
 interface BlockDefinition {
   type: BlockType;
@@ -8,6 +7,8 @@ interface BlockDefinition {
   className: string;
   structureHtml: string; // El esqueleto físico del contenido
   controller: new (selector: string | HTMLElement) => Block;
+  useHeader?: boolean;
+  useResizer?: boolean;
 }
 
 export class BlockRegistry {
@@ -26,19 +27,3 @@ export class BlockRegistry {
   }
 }
 
-// Registro centralizado: Ahora el registro es el DUEÑO de cómo se ve el bloque
-BlockRegistry.register({
-  type: BlockType.PSEUDOCODE,
-  title: 'Nueva Función',
-  className: 'editor-block',
-  structureHtml: '<div class="pseudocode" contenteditable="true">Algoritmo NuevaFuncion\n  // Escribe aquí...\nFinAlgoritmo</div>',
-  controller: EditorBlock
-});
-
-BlockRegistry.register({
-  type: BlockType.NOTE,
-  title: 'Nota',
-  className: 'notes-block',
-  structureHtml: '<textarea class="notes-area" placeholder="Escribe algo..."></textarea>',
-  controller: NoteBlock
-});

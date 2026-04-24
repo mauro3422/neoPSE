@@ -131,6 +131,33 @@ export class RelationshipManager {
     });
   }
 
+  public getConnectedComponent(rootId: string): string[] {
+    const visited = new Set<string>();
+    const stack = [rootId];
+    
+    while (stack.length > 0) {
+      const current = stack.pop()!;
+      if (!visited.has(current)) {
+        visited.add(current);
+        const neighbors = this.getLinkedBlockIds(current);
+        neighbors.forEach(n => {
+          if (!visited.has(n)) stack.push(n);
+        });
+      }
+    }
+    
+    return Array.from(visited);
+  }
+
+  public getLinkedBlockIds(blockId: string): string[] {
+    const ids = new Set<string>();
+    this.links.forEach(l => {
+      if (l.fromId === blockId) ids.add(l.toId);
+      if (l.toId === blockId) ids.add(l.fromId);
+    });
+    return Array.from(ids);
+  }
+
   public drawAll() {
     this.links.forEach(link => this.updatePath(link));
   }
@@ -166,14 +193,21 @@ export class RelationshipManager {
   }
 
   private getRect(el: HTMLElement) {
-    const pos = SpaceManager.getElementPos(el);
-    const center = SpaceManager.getElementCenter(el);
+    const rect = el.getBoundingClientRect();
+    // Convertimos coordenadas de pantalla a mundo (Viewport aware)
+    const topLeft = SpaceManager.screenToWorld(rect.left, rect.top);
+    const bottomRight = SpaceManager.screenToWorld(rect.right, rect.bottom);
+    
+    const w = bottomRight.x - topLeft.x;
+    const h = bottomRight.y - topLeft.y;
+
     return {
-      x: pos.x, y: pos.y,
-      w: el.offsetWidth,
-      h: el.offsetHeight,
-      cx: center.x,
-      cy: center.y
+      x: topLeft.x,
+      y: topLeft.y,
+      w: w,
+      h: h,
+      cx: topLeft.x + w / 2,
+      cy: topLeft.y + h / 2
     };
   }
 

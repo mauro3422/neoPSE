@@ -3,7 +3,8 @@ import { Vector2 } from "../Constants";
 export enum BlockType {
   PSEUDOCODE = 'pseudocode',
   NOTE = 'note',
-  ASSISTANT = 'assistant'
+  ASSISTANT = 'assistant',
+  FOLDER = 'folder'
 }
 
 export interface BlockData {

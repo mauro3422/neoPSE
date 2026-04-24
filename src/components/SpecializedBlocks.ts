@@ -1,5 +1,6 @@
 import { Block } from "./Block";
 import { DOMUtils } from "../core/DOMUtils";
+import { AnimationManager } from "../core/AnimationManager";
 
 export class EditorBlock extends Block {
   constructor(selector: string | HTMLElement) {
@@ -46,5 +47,31 @@ export class NoteBlock extends Block {
 
   public getContent(): string {
     return this.element.querySelector('textarea')?.value || '';
+  }
+}
+
+export class FolderBlock extends Block {
+  constructor(selector: string | HTMLElement) {
+    super(selector);
+    this.initFolderEvents();
+    // Animación inicial de "chiquito a grande" al nacer
+    AnimationManager.expand(this.element);
+  }
+
+  private initFolderEvents() {
+    this.element.addEventListener('dblclick', () => {
+      this.openModule();
+    });
+  }
+
+  private async openModule() {
+    console.log(`[FolderBlock] Abriendo módulo: ${this.id}`);
+    // Aquí implementaremos la lógica de expandirse y mostrar hijos
+    // Por ahora, una animación de feedback
+    await AnimationManager.expand(this.element, 200);
+  }
+
+  public getContent(): string {
+    return "";
   }
 }
