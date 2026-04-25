@@ -42,6 +42,9 @@ export class ContextPacker {
       };
     });
 
+    console.log("[ContextPacker debug] steps:", steps);
+    console.log("[ContextPacker debug] liveBlocks:", liveBlocks);
+
     return {
       globalNotes,
       executionSequence: steps,
