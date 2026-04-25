@@ -2,13 +2,24 @@
  * Estado que gestiona los bloques adjuntos al chat de IA.
  */
 export class ChatContextState {
-  private static selectedIds: string[] = [];
+  private static selectedIds: string[] = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('neopse_chat_context') || '[]');
+    } catch {
+      return [];
+    }
+  })();
 
   public static add(id: string) {
     if (!this.selectedIds.includes(id)) {
       this.selectedIds.push(id);
+      this.save();
       this.renderChips();
     }
+  }
+
+  private static save() {
+    localStorage.setItem('neopse_chat_context', JSON.stringify(this.selectedIds));
   }
 
   public static getSelectedIds(): string[] {
@@ -17,6 +28,7 @@ export class ChatContextState {
 
   public static clear() {
     this.selectedIds = [];
+    this.save();
     this.renderChips();
   }
 
@@ -66,6 +78,7 @@ export class ChatContextState {
       closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         this.selectedIds = this.selectedIds.filter(selectedId => selectedId !== id);
+        this.save();
         this.renderChips();
       });
 
