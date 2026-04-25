@@ -26,10 +26,19 @@ export class AssistantBlock extends UIComponent {
         this.chatInput.value = '';
         this.syncState(this.serializeChat());
 
-        setTimeout(() => {
-          this.addMessage('ai', 'Estoy analizando tu estructura de datos...');
-          this.syncState(this.serializeChat());
-        }, 1000);
+        import("../core/ContextPacker").then(({ ContextPacker }) => {
+          const aiContext = ContextPacker.pack();
+          import("../core/AIService").then(({ AIService }) => {
+            AIService.sendMessage(text, aiContext).then(response => {
+              this.addMessage('ai', response.message);
+              this.syncState(this.serializeChat());
+            }).catch(err => {
+              console.error("[AssistantBlock] Error:", err);
+              this.addMessage('ai', '❌ Error al conectar con el cerebro de IA.');
+              this.syncState(this.serializeChat());
+            });
+          });
+        });
       }
     });
   }
