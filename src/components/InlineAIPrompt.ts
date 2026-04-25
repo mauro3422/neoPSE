@@ -124,7 +124,7 @@ export class InlineAIPrompt {
 
     // Llamada real al servicio de IA
     import("../core/AIService").then(({ AIService }) => {
-      AIService.sendMessage(text, aiContext).then(response => {
+      AIService.sendMessage(text, aiContext, this.currentBlockId || undefined).then(response => {
         messages.push({ role: 'ai', content: response.message });
         this.renderMessages();
         if (btn) {
