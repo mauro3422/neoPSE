@@ -229,9 +229,12 @@ body.linking-mode .block { cursor: crosshair !important; border-style: dashed; }
   width: 64px;
   height: 64px;
   fill: rgba(255, 255, 255, 0.1);
-  stroke: rgba(255, 255, 255, 0.6);
-  stroke-width: 1px;
+  stroke: rgba(255, 255, 255, 0.8);
+  stroke-width: 2px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+  transition: all 0.2s ease;
 }
 
 .folder-block.is-selected .folder-icon {
