@@ -15,10 +15,14 @@ export class BlockFactory {
     el.classList.add('world-block', 'block', definition.className);
     el.style.left = `${x}px`;
     el.style.top = `${y}px`;
-    const contentWrapper = document.createElement('div');
-    contentWrapper.className = 'block-content';
-    contentWrapper.innerHTML = definition.structureHtml;
-    el.appendChild(contentWrapper);
+    if (type === BlockType.FOLDER) {
+      el.innerHTML = definition.structureHtml;
+    } else {
+      const contentWrapper = document.createElement('div');
+      contentWrapper.className = 'block-content';
+      contentWrapper.innerHTML = definition.structureHtml;
+      el.appendChild(contentWrapper);
+    }
 
     if (definition.useHeader) {
       this.injectHeader(el, definition.title);
