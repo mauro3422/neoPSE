@@ -12,7 +12,7 @@ export interface AIResponse {
  * Servicio central para comunicarse con Modelos de Lenguaje Locales (Ollama / LM Studio).
  */
 export class AIService {
-  private static endpoint: string = "http://localhost:11434/v1/chat/completions"; // Compatible con OpenAI / Ollama v1
+  private static endpoint: string = "http://localhost:1234/v1/chat/completions"; // LM Studio por defecto (Ollama usa 11434)
 
   public static setEndpoint(url: string) {
     this.endpoint = url;
