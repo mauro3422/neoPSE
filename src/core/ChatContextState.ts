@@ -10,12 +10,16 @@ export class ChatContextState {
     }
   })();
 
+  public static init() {
+    this.renderChips();
+  }
+
   public static add(id: string) {
     if (!this.selectedIds.includes(id)) {
       this.selectedIds.push(id);
       this.save();
-      this.renderChips();
     }
+    this.renderChips();
   }
 
   private static save() {

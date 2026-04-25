@@ -13,6 +13,7 @@ import { BlockRegistry } from "./core/BlockRegistry";
 import { initBlockRegistry } from "./core/BlocksRegistration";
 import { ParticleSystem } from "./core/ParticleSystem";
 import { GeometricEngine } from "./core/GeometricEngine";
+import { ChatContextState } from "./core/ChatContextState";
 import { ContextMenu } from "./components/ContextMenu";
 import { blockManager } from "./core/BlockManager";
 import { AnimationManager } from "./core/AnimationManager";
@@ -35,6 +36,7 @@ class Workspace {
       new ViewportController('board');
 
       new AssistantBlock('#assistant-panel');
+      ChatContextState.init();
 
       this.rehydrateWorkspace();
       this.setupThemeToggle();
