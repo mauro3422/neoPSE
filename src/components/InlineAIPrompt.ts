@@ -122,16 +122,27 @@ export class InlineAIPrompt {
     const aiContext = ContextPacker.pack();
     console.log(`[Inline Chat] Enviando contexto para el bloque ${this.currentBlockId}:`, aiContext);
 
-    // Simular respuesta de IA
-    setTimeout(() => {
-      messages.push({ role: 'ai', content: `He recibido tu instrucción: "${text}". Analizando el grafo... ¡Listo! ¿Cuál es el siguiente paso?` });
+    // Llamada real al servicio de IA
+    import("../core/AIService").then(({ AIService }) => {
+      AIService.sendMessage(text, aiContext).then(response => {
+        messages.push({ role: 'ai', content: response.message });
+        this.renderMessages();
+        if (btn) {
+          btn.textContent = 'Enviar 📨';
+          btn.style.opacity = '1';
+          btn.style.pointerEvents = 'auto';
+        }
+      });
+    }).catch(err => {
+      console.error("[Inline Chat] Error en AIService:", err);
+      messages.push({ role: 'ai', content: '❌ Ocurrió un error interno al intentar procesar tu mensaje.' });
       this.renderMessages();
       if (btn) {
         btn.textContent = 'Enviar 📨';
         btn.style.opacity = '1';
         btn.style.pointerEvents = 'auto';
       }
-    }, 1500);
+    });
   }
 
   public static hide() {
