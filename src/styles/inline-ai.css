@@ -80,3 +80,52 @@
 }
 
 .generate-btn:active { transform: translateY(0); }
+
+.prompt-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--block-border);
+}
+
+/* Custom scrollbar para los mensajes */
+.prompt-messages::-webkit-scrollbar { width: 4px; }
+.prompt-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+.inline-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+}
+
+.inline-msg.user {
+  align-self: flex-end;
+}
+
+.inline-msg.ai {
+  align-self: flex-start;
+}
+
+.inline-msg .msg-content {
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.inline-msg.user .msg-content {
+  background: var(--accent-color);
+  color: white;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+.inline-msg.ai .msg-content {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--block-border);
+  color: var(--text-main);
+  border-bottom-left-radius: 4px;
+}
