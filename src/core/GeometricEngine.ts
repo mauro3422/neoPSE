@@ -66,13 +66,25 @@ export class GeometricEngine {
     // Si es un bloque, usamos su posición de estilo directamente para evitar lag de frames
     if (el.classList.contains('block') || el.classList.contains('world-block')) {
       const pos = this.getElementPos(el);
-      const w = el.offsetWidth;
-      const h = el.offsetHeight;
+      let w = el.offsetWidth;
+      let h = el.offsetHeight;
+      
+      // Parsear la escala del transform para ajustar los bordes
+      const transform = el.style.transform;
+      let scale = 1;
+      if (transform && transform.includes('scale')) {
+        const match = transform.match(/scale\(([^)]+)\)/);
+        if (match && match[1]) scale = parseFloat(match[1]);
+      }
+      
+      const realW = w * scale;
+      const realH = h * scale;
+
       return {
-        x: pos.x,
-        y: pos.y,
-        w: w,
-        h: h,
+        x: pos.x + (w - realW) / 2,
+        y: pos.y + (h - realH) / 2,
+        w: realW,
+        h: realH,
         cx: pos.x + w / 2,
         cy: pos.y + h / 2
       };

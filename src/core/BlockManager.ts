@@ -33,6 +33,10 @@ export class BlockManager {
     this.blocks.push(block);
   }
 
+  public forgetBlock(id: string) {
+    this.blocks = this.blocks.filter(b => b.getElement().id !== id);
+  }
+
   public getBlocks(): Block[] {
     return [...this.blocks];
   }

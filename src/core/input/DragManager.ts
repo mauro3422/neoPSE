@@ -1,9 +1,10 @@
-import { IDE_CONFIG } from "../Config";
 import { BlockRegistry } from "../BlockRegistry";
 import { GeometricEngine } from "../GeometricEngine";
 import { relationshipManager } from "../RelationshipManager";
-import { AnimationManager } from "../AnimationManager";
 import { blockManager } from "../BlockManager";
+import { workspaceState } from "../state/WorkspaceState";
+import { SelectionManager } from "../SelectionManager";
+import { chainPhysicsEngine } from "../ChainPhysicsEngine";
 
 export interface Draggable {
   onDragStart(x: number, y: number): void;
@@ -68,12 +69,36 @@ export class DragManager {
   /**
    * Lógica de succión de red de bloques hacia una carpeta.
    */
-  public async suckConnectedNetwork(blockId: string, folder: HTMLElement, allConnectedIds: string[]) {
+  public async suckConnectedNetwork(blockId: string, folder: HTMLElement, allConnectedData: { id: string, level: number }[]) {
     const el = document.getElementById(blockId);
     if (!el) return;
 
-    const suckPromises: Promise<void>[] = [];
     folder.classList.add('is-eating');
+
+    const folderRect = GeometricEngine.getWorldRect(folder);
+    const destination = { x: folderRect.cx, y: folderRect.cy };
+    const folderInstance = blockManager.getBlocks().find(b => b.getElement() === folder) as any;
+
+    const chainData: { id: string, element: HTMLElement, mass: number, serializeData: any }[] = [];
+
+    allConnectedData.forEach(({ id }) => {
+      const blockEl = document.getElementById(id);
+      const blockInstance = blockManager.getBlocks().find(b => b.getElement().id === id);
+      if (blockEl && blockInstance) {
+        const type = id.split('_')[0] as any;
+        const def = BlockRegistry.getDefinition(type);
+        const mass = def ? def.mass : 1;
+
+        chainData.push({
+          id,
+          element: blockEl,
+          mass,
+          serializeData: blockInstance.serialize()
+        });
+      }
+    });
+
+    const allConnectedIds = chainData.map(d => d.id);
 
     const updateLinks = () => {
       allConnectedIds.forEach(id => {
@@ -82,51 +107,34 @@ export class DragManager {
       });
     };
 
-    const folderRect = GeometricEngine.getWorldRect(folder);
-    const destination = { x: folderRect.cx, y: folderRect.cy };
-    const folderInstance = blockManager.getBlocks().find(b => b.getElement() === folder) as any;
-
     // Capturar data de bloques y links ANTES de succionar
     if (folderInstance && folderInstance.addSwallowedBlock) {
-      allConnectedIds.forEach(id => {
-        const block = blockManager.getBlocks().find(b => b.getElement().id === id);
-        if (block) {
-          folderInstance.addSwallowedBlock(block.serialize());
-          // Capturar links relacionados
-          const links = relationshipManager.getLinksForBlock(id);
-          links.forEach(l => folderInstance.addSwallowedLink({ fromId: l.fromId, toId: l.toId }));
-        }
+      chainData.forEach(({ id, serializeData }) => {
+        folderInstance.addSwallowedBlock(serializeData);
+        const links = relationshipManager.getLinksForBlock(id);
+        links.forEach(l => folderInstance.addSwallowedLink({ fromId: l.fromId, toId: l.toId }));
+        
+        // BORRADO LÓGICO INMEDIATO (Para evitar duplicados en guardados concurrentes)
+        blockManager.forgetBlock(id);
+        workspaceState.removeBlock(id);
       });
     }
 
-    suckPromises.push(
-      AnimationManager.blackHoleSuck(el, destination, IDE_CONFIG.TRANSITIONS.SUCTION_DURATION, updateLinks).then(() => {
-        relationshipManager.removeLinksForBlock(blockId);
-        blockManager.deleteBlock(blockId);
-      })
+    // EJECUTAR FÍSICA DE RESORTES (Efecto Espagueti Real)
+    await chainPhysicsEngine.startSuction(
+      chainData.map(d => ({ id: d.id, element: d.element })),
+      destination,
+      updateLinks
     );
 
-    const others = allConnectedIds.filter(id => id !== blockId);
-    others.forEach((id, index) => {
-      const connectedEl = document.getElementById(id);
-      if (connectedEl) {
-        const type = id.split('_')[0] as any;
-        const def = BlockRegistry.getDefinition(type);
-        const mass = def ? def.mass : 1;
-        const duration = IDE_CONFIG.TRANSITIONS.SUCTION_DURATION * mass;
-
-        const promise = new Promise<void>(async (resolve) => {
-          await new Promise(r => setTimeout(r, (index + 1) * IDE_CONFIG.PHYSICS.STAGGER_DELAY));
-          await AnimationManager.blackHoleSuck(connectedEl, destination, duration, updateLinks, false);
-          relationshipManager.removeLinksForBlock(id);
-          blockManager.deleteBlock(id);
-          resolve();
-        });
-        suckPromises.push(promise);
+    // CLEANUP FINAL (Solo cuando todo el espagueti ha entrado)
+    chainData.forEach((data, index) => {
+      relationshipManager.removeLinksForBlock(data.id);
+      data.element.remove(); // Borrado físico del DOM
+      if (index === 0 && SelectionManager.getSelected() === data.element) {
+        SelectionManager.clear();
       }
     });
-
-    await Promise.all(suckPromises);
     folder.classList.remove('is-eating');
   }
 }

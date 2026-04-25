@@ -106,8 +106,8 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
       const folderRect = GeometricEngine.getWorldRect(folderEl);
       if (GeometricEngine.isPointInRect(worldMouse, folderRect)) {
         console.log(`[BlackHole] Succionando bloque ${this.id} hacia carpeta ${folderEl.id}`);
-        const connectedIds = relationshipManager.getConnectedComponent(this.id);
-        dragManager.suckConnectedNetwork(this.id, folderEl, connectedIds);
+        const connectedData = relationshipManager.getConnectedComponentWithLevels(this.id);
+        dragManager.suckConnectedNetwork(this.id, folderEl, connectedData);
         break;
       }
     }

@@ -159,6 +159,7 @@ export class RelationshipManager {
       if (link.fromId === blockId || link.toId === blockId) {
         if (this.pathPool.length < 100) {
           link.pathElement.style.display = 'none';
+          link.pathElement.setAttribute('d', ''); // Limpiar coordenadas viejas para evitar fantasmas
           this.pathPool.push(link.pathElement);
         } else {
           link.pathElement.remove(); // Borrado físico si el pool está lleno
@@ -171,16 +172,36 @@ export class RelationshipManager {
 
   public getConnectedComponent(rootId: string): string[] {
     const visited = new Set<string>();
-    const stack = [rootId];
-    while (stack.length > 0) {
-      const current = stack.pop()!;
+    const queue = [rootId];
+    while (queue.length > 0) {
+      const current = queue.shift()!;
       if (!visited.has(current)) {
         visited.add(current);
         const neighbors = this.getLinkedBlockIds(current);
-        neighbors.forEach(n => { if (!visited.has(n)) stack.push(n); });
+        neighbors.forEach(n => { if (!visited.has(n)) queue.push(n); });
       }
     }
     return Array.from(visited);
+  }
+
+  public getConnectedComponentWithLevels(rootId: string): { id: string, level: number }[] {
+    const visited = new Map<string, number>();
+    const queue: { id: string, level: number }[] = [{ id: rootId, level: 0 }];
+    
+    while (queue.length > 0) {
+      const { id, level } = queue.shift()!;
+      if (!visited.has(id)) {
+        visited.set(id, level);
+        const neighbors = this.getLinkedBlockIds(id);
+        neighbors.forEach(n => {
+          if (!visited.has(n)) {
+            queue.push({ id: n, level: level + 1 });
+          }
+        });
+      }
+    }
+    
+    return Array.from(visited.entries()).map(([id, level]) => ({ id, level }));
   }
 
   public getLinkedBlockIds(blockId: string): string[] {
@@ -218,8 +239,12 @@ export class RelationshipManager {
   private updatePath(link: Link) {
     const fromEl = document.getElementById(link.fromId);
     const toEl = document.getElementById(link.toId);
-    if (!fromEl || !toEl) return;
+    if (!fromEl || !toEl) {
+      link.pathElement.style.display = 'none'; // Ocultar si no se encuentran los extremos
+      return;
+    }
 
+    link.pathElement.style.display = ''; // Restaurar visibilidad si existen ambos
     const fromRect = GeometricEngine.getWorldRect(fromEl);
     const toRect = GeometricEngine.getWorldRect(toEl);
     const { start, end } = this.getBestAnchorPoints(fromRect, toRect);

@@ -62,14 +62,14 @@ export class AnimationManager {
     }
 
     const startTime = performance.now();
-    el.style.willChange = 'transform, opacity, width, height';
+    el.style.willChange = 'transform, opacity';
 
     return new Promise<void>((resolve) => {
       const tickerCallback = (_deltaTime: number, timestamp: number) => {
         const elapsed = timestamp - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Usamos el motor de física para calcular la transformación
+        // Usamos el motor de física para calcular la trayectoria
         const physics = PhysicsEngine.calculateSuctionPath(
           { x: startPos.x + startPos.w / 2, y: startPos.y + startPos.h / 2 },
           destWorld,
@@ -77,20 +77,17 @@ export class AnimationManager {
           Easings.easeInExpo
         );
 
-        const curW = startPos.w * (1 - progress);
-        const curH = startPos.h * (1 - progress);
-        
-        // Efecto "Fideo": Orientación hacia el destino + Estiramiento (Squash & Stretch)
-        const angle = Math.atan2(destWorld.y - physics.pos.y, destWorld.x - physics.pos.x) * (180 / Math.PI);
-        const stretch = 1 + progress * 2; // Se estira hasta 3 veces su largo
-        const squeeze = 1 - progress * 0.5; // Se comprime a la mitad su ancho
+        // Escala pura: se achica progresivamente
+        // NOTA DE DISEÑO: NO agregar 'rotate()' ni mutar width/height aquí.
+        // Esto causa reflows costosos y hace que el texto se rompa de forma fea (wrapping).
+        // El efecto de arrastre premium se logra manteniendo el elemento estable.
+        const scale = 1 - progress;
 
-        el.style.left = `${physics.pos.x - curW / 2}px`;
-        el.style.top = `${physics.pos.y - curH / 2}px`;
-        el.style.width = `${curW}px`;
-        el.style.height = `${curH}px`;
-        el.style.opacity = `${1 - progress * 0.8}`;
-        el.style.transform = `rotate(${angle}deg) scale(${stretch}, ${squeeze})`;
+        // Posicionamiento basado en el centro original
+        el.style.left = `${physics.pos.x - startPos.w / 2}px`;
+        el.style.top = `${physics.pos.y - startPos.h / 2}px`;
+        el.style.opacity = `${1 - progress * 0.9}`;
+        el.style.transform = `scale(${scale})`; 
 
         if (onUpdate) onUpdate();
 
