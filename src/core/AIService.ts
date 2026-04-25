@@ -12,7 +12,7 @@ export interface AIResponse {
  * Servicio central para comunicarse con Modelos de Lenguaje Locales (Ollama / LM Studio).
  */
 export class AIService {
-  private static endpoint: string = "http://localhost:8000/v1/chat/completions"; // Llama Server de OmnySystem port 8000
+  private static endpoint: string = "http://127.0.0.1:8000/v1/chat/completions"; // Llama Server de OmnySystem port 8000
 
   public static setEndpoint(url: string) {
     this.endpoint = url;
