@@ -1,10 +1,12 @@
 import { GraphParser, ExecutionStep } from "./GraphParser";
 import { BlockType } from "../types";
+import { ChatContextState } from "./ChatContextState";
 
 export interface AIPackage {
   globalNotes: string[];
   executionSequence: ExecutionStep[];
   hasImplementation: boolean;
+  selectedContextIds: string[];
 }
 
 /**
@@ -32,7 +34,8 @@ export class ContextPacker {
     return {
       globalNotes,
       executionSequence: steps,
-      hasImplementation
+      hasImplementation,
+      selectedContextIds: ChatContextState.getSelectedIds()
     };
   }
 }

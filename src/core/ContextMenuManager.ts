@@ -1,4 +1,5 @@
 import { blockManager } from "./BlockManager";
+import { ChatContextState } from "./ChatContextState";
 
 /**
  * Gestiona el menú contextual unificado para todos los bloques.
@@ -6,6 +7,7 @@ import { blockManager } from "./BlockManager";
 export class ContextMenuManager {
   private static menuEl: HTMLElement | null = null;
   private static currentBlockId: string | null = null;
+  private static renameOpt: HTMLElement | null = null;
 
   public static init() {
     if (this.menuEl) return;
@@ -14,27 +16,7 @@ export class ContextMenuManager {
     this.menuEl.className = 'context-menu';
     this.menuEl.style.display = 'none';
     
-    document.body.appendChild(this.menuEl);
-
-    // Cerrar menú al hacer clic fuera
-    window.addEventListener('click', () => this.hide());
-    window.addEventListener('contextmenu', (e) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.world-block')) {
-        this.hide();
-      }
-    });
-  }
-
-  public static show(blockId: string, x: number, y: number, isFolder: boolean = false) {
-    this.init();
-    this.currentBlockId = blockId;
-
-    if (!this.menuEl) return;
-
-    this.menuEl.innerHTML = '';
-
-    // Opción 1: Preguntar a IA (Inline)
+    // Crear opciones estáticas una sola vez
     const askAiOpt = document.createElement('div');
     askAiOpt.className = 'context-menu-item';
     askAiOpt.innerHTML = '🤖 Preguntar a IA (Inline)';
@@ -44,7 +26,6 @@ export class ContextMenuManager {
     };
     this.menuEl.appendChild(askAiOpt);
 
-    // Opción 2: Añadir al Contexto
     const addCtxOpt = document.createElement('div');
     addCtxOpt.className = 'context-menu-item';
     addCtxOpt.innerHTML = '💬 Añadir al Contexto';
@@ -58,19 +39,15 @@ export class ContextMenuManager {
     divider.className = 'context-menu-divider';
     this.menuEl.appendChild(divider);
 
-    // Opción 3: Renombrar (Si es carpeta)
-    if (isFolder) {
-      const renameOpt = document.createElement('div');
-      renameOpt.className = 'context-menu-item';
-      renameOpt.innerHTML = '✏️ Renombrar';
-      renameOpt.onclick = (e) => {
-        e.stopPropagation();
-        this.triggerRename();
-      };
-      this.menuEl.appendChild(renameOpt);
-    }
+    this.renameOpt = document.createElement('div');
+    this.renameOpt.className = 'context-menu-item';
+    this.renameOpt.innerHTML = '✏️ Renombrar';
+    this.renameOpt.onclick = (e) => {
+      e.stopPropagation();
+      this.triggerRename();
+    };
+    this.menuEl.appendChild(this.renameOpt);
 
-    // Opción 4: Eliminar
     const deleteOpt = document.createElement('div');
     deleteOpt.className = 'context-menu-item delete-item';
     deleteOpt.innerHTML = '🗑️ Eliminar';
@@ -79,6 +56,24 @@ export class ContextMenuManager {
       this.deleteBlock();
     };
     this.menuEl.appendChild(deleteOpt);
+
+    document.body.appendChild(this.menuEl);
+
+    // Eventos globales robustos
+    window.addEventListener('click', () => this.hide());
+    window.addEventListener('contextmenu', () => this.hide());
+  }
+
+  public static show(blockId: string, x: number, y: number, isFolder: boolean = false) {
+    this.init();
+    this.currentBlockId = blockId;
+
+    if (!this.menuEl) return;
+
+    // Mostrar/Ocultar Renombrar
+    if (this.renameOpt) {
+      this.renameOpt.style.display = isFolder ? 'flex' : 'none';
+    }
 
     this.menuEl.style.left = `${x}px`;
     this.menuEl.style.top = `${y}px`;
@@ -97,8 +92,9 @@ export class ContextMenuManager {
 
   private static addToChatContext() {
     this.hide();
-    console.log(`[AI] Añadiendo bloque ${this.currentBlockId} al contexto del chat`);
-    // TODO: Implementar chips
+    if (this.currentBlockId) {
+      ChatContextState.add(this.currentBlockId);
+    }
   }
 
   private static triggerRename() {
