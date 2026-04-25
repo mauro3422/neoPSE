@@ -4,6 +4,7 @@ import { blockManager } from "./BlockManager";
 
 export interface ExecutionStep {
   blockId: string;
+  title: string;
   type: BlockType;
   content: string;
 }
@@ -86,8 +87,13 @@ export class GraphParser {
     // 4. Mapear a Pasos de Ejecución
     return orderedIds.map(id => {
       const block = blocks.find(b => b.id === id)!;
+      const el = document.getElementById(id);
+      const title = el?.querySelector('.folder-label')?.textContent || 
+                    el?.querySelector('.block-title')?.textContent || 
+                    "Bloque";
       return {
         blockId: id,
+        title: title,
         type: block.type,
         content: block.content || ""
       };

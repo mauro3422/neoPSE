@@ -35,8 +35,13 @@ export class ContextPacker {
 
     const liveBlocks = blockManager.getBlocks().map((b: any) => {
       const data = b.serialize();
+      const el = document.getElementById(data.id);
+      const title = el?.querySelector('.folder-label')?.textContent || 
+                    el?.querySelector('.block-title')?.textContent || 
+                    "Bloque";
       return {
         blockId: data.id,
+        title: title,
         type: data.type,
         content: b.getContent() || data.content || ""
       };
