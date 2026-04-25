@@ -7,11 +7,13 @@ Todos los cambios notables en este proyecto serán documentados en este archivo 
 - **Arquitectura de Managers (POO)**: Introducción de `BlockManager` para centralizar el ciclo de vida de componentes y desacoplar el core.
 - **Unificación de Configuración**: Fusión de `Constants` y `Config` en una única fuente de verdad tipada.
 - **Hardening Geométrico (DRY)**: Consolidación de `GeometricEngine` eliminando utilidades duplicadas y aplicando Genéricos para preservación de tipos.
-- **Excelencia UX**: 
-    - Hitboxes de carpetas optimizados al 100% (80x80).
-    - Activación de succión basada en puntero para máxima precisión.
+- **Excelencia UX & Hitbox (Pixel Perfect)**: 
+    - Hitboxes de carpetas optimizados mediante técnica de "Ghost Container" (0 activaciones accidentales).
+    - Sustitución de emojis por Iconos SVG vectoriales de alta fidelidad.
+    - Sistema de deselección inteligente: clic en el fondo ahora limpia la selección actual.
     - Soporte nativo para borrado vía teclado (`Delete`/`Backspace`) con seguridad anti-typing.
     - Menú contextual con opción de borrado rápido.
+- **Hardening SOLID**: Refactorización de gestión de eventos en `Block.ts` mediante delegación de acciones.
 - **Type Safety Total**: Resolución de todas las dependencias circulares y errores de TSC (Exit Code 0).
 - **Centralización de Entrada**: Refactor de `InputSystem` para gestionar todos los atajos globales.
 

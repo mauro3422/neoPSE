@@ -80,8 +80,14 @@ class Workspace {
     const finalId = el.id;
     el.setAttribute('tabindex', '-1'); // Permitir foco para captura de eventos
     if (size) {
-      el.style.width = `${size.width}px`;
-      el.style.height = `${size.height}px`;
+      // Migración: Si es una carpeta y tiene el tamaño viejo (120 o 80), forzar a 64
+      if (type === BlockType.FOLDER && (size.width > 64)) {
+        el.style.width = `64px`;
+        el.style.height = `64px`;
+      } else {
+        el.style.width = `${size.width}px`;
+        el.style.height = `${size.height}px`;
+      }
     }
 
     const instance = new def.controller(el);

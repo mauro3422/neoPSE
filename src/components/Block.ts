@@ -125,30 +125,37 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
   }
 
   private initBaseEvents() {
+    // Selección por clic (Fase de captura para prioridad)
     this.element.addEventListener('mousedown', () => {
       SelectionManager.select(this.element);
     }, { capture: true });
 
-    this.element.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      const btn = target.closest('button');
-      
-      if (!btn) {
-        // Delegar lógica de enlace al ConnectionManager (SOLID)
-        if (connectionManager.getIsLinking()) {
-          connectionManager.complete(this.id);
-          e.stopPropagation();
-        }
-        return;
-      }
-
-      if (btn.classList.contains('link-btn')) this.handleLinkClick(e);
-      if (btn.classList.contains('close-btn')) this.handleDestroyClick(e);
-    });
+    // Delegación de acciones de botones
+    this.element.addEventListener('click', (e) => this.handleBlockClick(e));
 
     this.element.addEventListener('input', () => {
       this.syncState(this.getContent());
     });
+  }
+
+  private handleBlockClick(e: MouseEvent) {
+    const target = e.target as HTMLElement;
+    const btn = target.closest('button');
+    
+    if (!btn) {
+      this.handleContentClick(e);
+      return;
+    }
+
+    if (btn.classList.contains('link-btn')) this.handleLinkClick(e);
+    if (btn.classList.contains('close-btn')) this.handleDestroyClick(e);
+  }
+
+  private handleContentClick(e: MouseEvent) {
+    if (connectionManager.getIsLinking()) {
+      connectionManager.complete(this.id);
+      e.stopPropagation();
+    }
   }
 
   private handleLinkClick(e: Event) {

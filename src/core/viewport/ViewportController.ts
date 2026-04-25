@@ -17,6 +17,13 @@ export class ViewportController implements Draggable {
     this.board = target;
     dragManager.register(this, this.board);
     this.board.addEventListener('wheel', this.onWheel.bind(this), { passive: false });
+    
+    // Limpiar selección al hacer clic en el fondo (Board)
+    this.board.addEventListener('mousedown', (e) => {
+      if (e.target === this.board || (e.target as HTMLElement).id === 'canvas') {
+        SelectionManager.clear();
+      }
+    });
   }
 
   public getElement() { return this.board; }
