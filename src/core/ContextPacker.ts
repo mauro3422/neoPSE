@@ -7,6 +7,7 @@ export interface AIPackage {
   executionSequence: ExecutionStep[];
   hasImplementation: boolean;
   selectedContextIds: string[];
+  allBlocks: ExecutionStep[];
 }
 
 /**
@@ -31,11 +32,22 @@ export class ContextPacker {
       }
     });
 
+    const { blockManager } = require("./BlockManager");
+    const liveBlocks = blockManager.getBlocks().map((b: any) => {
+      const data = b.serialize();
+      return {
+        blockId: data.id,
+        type: data.type,
+        content: b.getContent() || data.content || ""
+      };
+    });
+
     return {
       globalNotes,
       executionSequence: steps,
       hasImplementation,
-      selectedContextIds: ChatContextState.getSelectedIds()
+      selectedContextIds: ChatContextState.getSelectedIds(),
+      allBlocks: liveBlocks
     };
   }
 }

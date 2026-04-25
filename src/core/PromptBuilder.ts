@@ -27,7 +27,7 @@ Instrucciones obligatorias:
  */
 export class AssistantPrompt extends BasePrompt {
   public buildSystemPrompt(): string {
-    const selectedBlocks = this.context.executionSequence.filter(step => 
+    const selectedBlocks = (this.context.allBlocks || this.context.executionSequence).filter(step => 
       this.context.selectedContextIds.includes(step.blockId)
     );
 
@@ -59,7 +59,7 @@ export class InlinePrompt extends BasePrompt {
   }
 
   public buildSystemPrompt(): string {
-    const targetBlock = this.context.executionSequence.find(step => step.blockId === this.targetBlockId);
+    const targetBlock = (this.context.allBlocks || this.context.executionSequence).find(step => step.blockId === this.targetBlockId);
     const blockContent = targetBlock ? targetBlock.content : "Sin contenido cargado";
 
     return `Eres NeoPSE Inline AI. Estás operando como copiloto específico para el Bloque ID: [${this.targetBlockId}].

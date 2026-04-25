@@ -28,6 +28,7 @@ export class AIService {
       : new AssistantPrompt(context);
       
     const systemPrompt = builder.buildSystemPrompt();
+    console.log("[AIService] 📤 PROMPT ENVIADO A IA:\n", systemPrompt);
 
     try {
       const response = await fetch(this.endpoint, {
