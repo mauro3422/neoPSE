@@ -73,6 +73,7 @@ export class NoteBlock extends Block {
 export class FolderBlock extends Block {
   private children: any[] = [];
   private childLinks: any[] = [];
+  private associatedBlockIds: string[] = [];
 
   constructor(selector: string | HTMLElement, skipAnimation: boolean = false) {
     super(selector, BlockType.FOLDER, skipAnimation);
@@ -83,9 +84,14 @@ export class FolderBlock extends Block {
 
   private rehydrate() {
     const data = this.getStateData() as any;
-    if (data && data.children) {
-      this.children = data.children;
-      this.childLinks = data.childLinks || [];
+    if (data) {
+      if (data.children) this.children = data.children;
+      if (data.childLinks) this.childLinks = data.childLinks || [];
+      if (data.associatedBlockIds) this.associatedBlockIds = data.associatedBlockIds;
+      if (data.content) {
+        const label = this.element.querySelector('.folder-label');
+        if (label) label.textContent = data.content;
+      }
     }
   }
 
@@ -94,9 +100,66 @@ export class FolderBlock extends Block {
       this.openModule();
     });
 
+    this.element.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      this.enableRenaming();
+    });
+
     eventBus.on(AppEvents.REQUEST_OPEN_FOLDER, (id: string) => {
       if (id === this.id) this.openModule();
     });
+  }
+
+  private enableRenaming() {
+    const label = this.element.querySelector<HTMLElement>('.folder-label');
+    if (!label) return;
+
+    label.setAttribute('contenteditable', 'true');
+    label.classList.add('is-editing');
+    label.focus();
+
+    const range = document.createRange();
+    range.selectNodeContents(label);
+    const sel = window.getSelection();
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    const saveName = () => {
+      label.removeAttribute('contenteditable');
+      label.classList.remove('is-editing');
+      let newName = label.textContent?.trim() || 'Módulo';
+      label.textContent = newName;
+      this.syncState(newName);
+      workspaceState.saveToStorage();
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveName();
+        label.removeEventListener('keydown', onKeyDown);
+        label.removeEventListener('blur', onBlur);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        const data = this.getStateData();
+        label.textContent = (data && data.content) ? data.content : 'Módulo';
+        label.removeAttribute('contenteditable');
+        label.classList.remove('is-editing');
+        label.removeEventListener('keydown', onKeyDown);
+        label.removeEventListener('blur', onBlur);
+      }
+    };
+
+    const onBlur = () => {
+      saveName();
+      label.removeEventListener('keydown', onKeyDown);
+      label.removeEventListener('blur', onBlur);
+    };
+
+    label.addEventListener('keydown', onKeyDown);
+    label.addEventListener('blur', onBlur);
   }
 
   /**
@@ -117,6 +180,10 @@ export class FolderBlock extends Block {
       ...data,
       position: relativePos
     });
+
+    if (!this.associatedBlockIds.includes(data.id)) {
+      this.associatedBlockIds.push(data.id);
+    }
   }
 
   public addSwallowedLink(link: any) {
@@ -128,7 +195,21 @@ export class FolderBlock extends Block {
 
   private async openModule() {
     if (this.children.length === 0) {
-      console.log("[FolderBlock] El módulo está vacío.");
+      if (this.associatedBlockIds.length > 0) {
+        const firstId = this.associatedBlockIds[0];
+        const firstEl = document.getElementById(firstId);
+        
+        if (firstEl) {
+          const { relationshipManager } = await import("../core/RelationshipManager");
+          const connectedData = relationshipManager.getConnectedComponentWithLevels(firstId);
+          eventBus.emit(AppEvents.REQUEST_SUCTION, { firstId, folderEl: this.element, connectedData });
+          return;
+        }
+      }
+
+      // Modo Enlace entre carpetas
+      const { connectionManager } = await import("../core/ConnectionManager");
+      connectionManager.start(this.id);
       return;
     }
 
@@ -190,7 +271,7 @@ export class FolderBlock extends Block {
   }
 
   public getContent(): string {
-    return "";
+    return this.element.querySelector('.folder-label')?.textContent || 'Módulo';
   }
 
   public serialize(): any {
@@ -198,7 +279,8 @@ export class FolderBlock extends Block {
     return {
       ...base,
       children: this.children,
-      childLinks: this.childLinks
+      childLinks: this.childLinks,
+      associatedBlockIds: this.associatedBlockIds
     };
   }
 }

@@ -51,6 +51,20 @@ export class ConnectionManager {
   public complete(targetId: string) {
     if (!this.isLinking || !this.sourceId || this.sourceId === targetId) return;
 
+    const sourceIsFolder = this.sourceId.startsWith('folder');
+    const targetIsFolder = targetId.startsWith('folder');
+
+    if (sourceIsFolder && !targetIsFolder) {
+      console.warn("[ConnectionManager] Un módulo solo puede conectarse a otro módulo.");
+      this.cancel();
+      return;
+    }
+    if (!sourceIsFolder && targetIsFolder) {
+      console.warn("[ConnectionManager] Los bloques no pueden conectarse a módulos directamente.");
+      this.cancel();
+      return;
+    }
+
     relationshipManager.addLink(this.sourceId, targetId);
     workspaceState.addLink(this.sourceId, targetId);
     

@@ -5,6 +5,7 @@ import { blockManager } from "../BlockManager";
 import { workspaceState } from "../state/WorkspaceState";
 import { SelectionManager } from "../SelectionManager";
 import { chainPhysicsEngine } from "../ChainPhysicsEngine";
+import { eventBus, AppEvents } from "../EventEmitter";
 
 export interface Draggable {
   onDragStart(x: number, y: number): void;
@@ -22,6 +23,10 @@ export class DragManager {
     window.addEventListener('mousedown', this.onMouseDown.bind(this));
     window.addEventListener('mousemove', this.onMouseMove.bind(this));
     window.addEventListener('mouseup', this.onMouseUp.bind(this));
+
+    eventBus.on(AppEvents.REQUEST_SUCTION, ({ firstId, folderEl, connectedData }) => {
+      this.suckConnectedNetwork(firstId, folderEl, connectedData);
+    });
   }
 
   public register(draggable: Draggable, el: HTMLElement) {
