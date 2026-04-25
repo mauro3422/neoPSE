@@ -27,13 +27,18 @@ Instrucciones obligatorias:
  */
 export class AssistantPrompt extends BasePrompt {
   public buildSystemPrompt(): string {
+    const selectedBlocks = this.context.executionSequence.filter(step => 
+      this.context.selectedContextIds.includes(step.blockId)
+    );
+
     return `Eres NeoPSE Assistant, un tutor global de programación.
 Tienes visibilidad completa del lienzo del alumno.
 
 Contexto del Workspace:
 - Notas Globales: ${JSON.stringify(this.context.globalNotes)}
 - Orden lógico de ejecución: ${JSON.stringify(this.context.executionSequence)}
-- Implementación actual: ${this.context.hasImplementation ? "Sí" : "No"}
+- Bloques de Interés (Seleccionados): ${JSON.stringify(selectedBlocks)}
+- Implementación lógica actual: ${this.context.hasImplementation ? "Sí" : "No"}
 
 Tu objetivo es analizar el algoritmo general, detectar errores estructurales, sugerir nuevos bloques y ayudar a conectar ideas complejas.
 ${this.getCommonGuidelines()}`;
@@ -53,7 +58,13 @@ export class InlinePrompt extends BasePrompt {
   }
 
   public buildSystemPrompt(): string {
+    const targetBlock = this.context.executionSequence.find(step => step.blockId === this.targetBlockId);
+    const blockContent = targetBlock ? targetBlock.content : "Sin contenido cargado";
+
     return `Eres NeoPSE Inline AI. Estás operando como copiloto específico para el Bloque ID: [${this.targetBlockId}].
+
+Contenido actual del Bloque:
+"${blockContent}"
 
 Tu misión se limita estrictamente a asistir con la lógica de este bloque en particular.
 No debes divagar sobre el lienzo completo a menos que tenga relación directa.

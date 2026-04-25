@@ -11,13 +11,31 @@ export interface ExecutionStep {
  * Lector de Grafos: Convierte el mapa visual en un flujo secuencial.
  */
 export class GraphParser {
+  private static getAllBlocks(blocks: any[]): any[] {
+    let result: any[] = [];
+    blocks.forEach(b => {
+      result.push(b);
+      if (b.children && Array.isArray(b.children)) {
+        result = result.concat(this.getAllBlocks(b.children));
+      }
+    });
+    return result;
+  }
+
   /**
    * Ordena los bloques del tablero en una secuencia lógica de ejecución usando Ordenamiento Topológico.
    */
   public static parseExecutionFlow(): ExecutionStep[] {
     const data = workspaceState.getData();
-    const blocks = data.blocks;
-    const links = data.links;
+    const blocks = this.getAllBlocks(data.blocks);
+    const links = [...data.links];
+
+    // Incluir links internos de carpetas
+    data.blocks.forEach((b: any) => {
+      if (b.childLinks && Array.isArray(b.childLinks)) {
+        links.push(...b.childLinks);
+      }
+    });
 
     // 1. Construir Lista de Adyacencia y Grados de Entrada
     const adjList: Map<string, string[]> = new Map();
