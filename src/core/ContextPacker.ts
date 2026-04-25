@@ -1,6 +1,7 @@
 import { GraphParser, ExecutionStep } from "./GraphParser";
 import { BlockType } from "../types";
 import { ChatContextState } from "./ChatContextState";
+import { blockManager } from "./BlockManager";
 
 export interface AIPackage {
   globalNotes: string[];
@@ -32,7 +33,6 @@ export class ContextPacker {
       }
     });
 
-    const { blockManager } = require("./BlockManager");
     const liveBlocks = blockManager.getBlocks().map((b: any) => {
       const data = b.serialize();
       return {
