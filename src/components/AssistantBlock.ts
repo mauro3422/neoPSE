@@ -47,7 +47,50 @@ export class AssistantBlock extends UIComponent {
     if (!this.messageArea) return;
     const msg = document.createElement('div');
     msg.className = `message ${role}`;
-    msg.textContent = text;
+    
+    let thinkText = '';
+    let mainText = text;
+    
+    if (text.includes('<think>') && text.includes('</think>')) {
+      const thinkStart = text.indexOf('<think>');
+      const thinkEnd = text.indexOf('</think>');
+      thinkText = text.substring(thinkStart + 7, thinkEnd).trim();
+      mainText = (text.substring(0, thinkStart) + text.substring(thinkEnd + 8)).trim();
+    }
+
+    if (thinkText) {
+      const thinkBox = document.createElement('details');
+      thinkBox.style.background = 'rgba(255,255,255,0.05)';
+      thinkBox.style.padding = '8px';
+      thinkBox.style.borderRadius = '4px';
+      thinkBox.style.marginBottom = '8px';
+      thinkBox.style.borderLeft = '3px solid var(--accent-color)';
+      thinkBox.style.fontSize = '0.8rem';
+      thinkBox.style.color = '#aaa';
+      
+      const summary = document.createElement('summary');
+      summary.style.cursor = 'pointer';
+      summary.style.fontWeight = 'bold';
+      summary.style.marginBottom = '4px';
+      summary.style.outline = 'none';
+      summary.textContent = '🧠 Pensamiento del modelo (Razonamiento)';
+      
+      const content = document.createElement('div');
+      content.style.whiteSpace = 'pre-wrap';
+      content.style.paddingLeft = '12px';
+      content.style.opacity = '0.85';
+      content.textContent = thinkText;
+      
+      thinkBox.appendChild(summary);
+      thinkBox.appendChild(content);
+      msg.appendChild(thinkBox);
+    }
+
+    const mainContent = document.createElement('div');
+    mainContent.style.whiteSpace = 'pre-wrap';
+    mainContent.textContent = mainText;
+    msg.appendChild(mainContent);
+
     this.messageArea.appendChild(msg);
     this.messageArea.scrollTop = this.messageArea.scrollHeight;
   }

@@ -95,12 +95,43 @@ export class InlineAIPrompt {
     if (!container) return;
 
     const messages = this.conversations.get(this.currentBlockId) || [];
-    container.innerHTML = messages.map(m => `
-      <div class="inline-msg ${m.role}">
-        <div class="msg-content">${this.escapeHtml(m.content)}</div>
-      </div>
-    `).join('');
+    
+    let html = '';
+    messages.forEach(m => {
+      let thinkText = '';
+      let mainText = m.content;
+      
+      if (m.content.includes('<think>') && m.content.includes('</think>')) {
+        const thinkStart = m.content.indexOf('<think>');
+        const thinkEnd = m.content.indexOf('</think>');
+        thinkText = m.content.substring(thinkStart + 7, thinkEnd).trim();
+        mainText = (m.content.substring(0, thinkStart) + m.content.substring(thinkEnd + 8)).trim();
+      }
 
+      let thinkHtml = '';
+      if (thinkText) {
+        thinkHtml = `
+          <details style="background: rgba(255,255,255,0.05); padding: 6px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid var(--accent-color); font-size: 0.75rem; color: #aaa;">
+            <summary style="cursor: pointer; font-weight: bold; margin-bottom: 2px;">🧠 Razonamiento</summary>
+            <div style="white-space: pre-wrap; padding-left: 8px; opacity: 0.8;">\${this.escapeHtml(thinkText)}</div>
+          </details>
+        `.replace('\${this.escapeHtml(thinkText)}', this.escapeHtml(thinkText));
+      }
+
+      html += `
+        <div class="inline-msg \${m.role}">
+          <div class="msg-content">
+            \${thinkHtml}
+            <div style="white-space: pre-wrap;">\${this.escapeHtml(mainText)}</div>
+          </div>
+        </div>
+      `.replace('\${m.role}', m.role)
+       .replace('\${thinkHtml}', thinkHtml)
+       .replace('\${this.escapeHtml(mainText)}', this.escapeHtml(mainText));
+    });
+
+    container.innerHTML = html;
+    
     container.scrollTop = container.scrollHeight;
   }
 
