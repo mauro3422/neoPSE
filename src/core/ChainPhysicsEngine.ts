@@ -12,6 +12,10 @@ interface VerletNode {
   locked: boolean;
 }
 
+/**
+ * Motor de físicas basado en Integración de Verlet y Restricciones Geométricas.
+ * Ideal para simular efectos de cuerdas, cadenas y succiones elásticas (Efecto Espagueti).
+ */
 export class ChainPhysicsEngine {
   private nodes: VerletNode[] = [];
   private target: Vector2 = { x: 0, y: 0 };
@@ -19,6 +23,12 @@ export class ChainPhysicsEngine {
   private resolvePromise?: () => void;
   private isRunning: boolean = false;
 
+  /**
+   * Inicia la animación de succión elástica para una red de bloques.
+   * @param nodesData Lista de bloques a succionar.
+   * @param targetPos Posición central del agujero negro (la carpeta).
+   * @param onUpdate Callback ejecutado en cada frame para redibujar conexiones.
+   */
   public startSuction(
     nodesData: { id: string, element: HTMLElement }[],
     targetPos: Vector2,
