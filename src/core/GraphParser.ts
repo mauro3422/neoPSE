@@ -1,5 +1,6 @@
 import { workspaceState } from "./state/WorkspaceState";
 import { BlockType } from "../types";
+import { blockManager } from "./BlockManager";
 
 export interface ExecutionStep {
   blockId: string;
@@ -26,8 +27,9 @@ export class GraphParser {
    * Ordena los bloques del tablero en una secuencia lógica de ejecución usando Ordenamiento Topológico.
    */
   public static parseExecutionFlow(): ExecutionStep[] {
+    const liveBlocks = blockManager.getBlocks().map(b => b.serialize());
+    const blocks = this.getAllBlocks(liveBlocks);
     const data = workspaceState.getData();
-    const blocks = this.getAllBlocks(data.blocks);
     const links = [...data.links];
 
     // Incluir links internos de carpetas

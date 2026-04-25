@@ -31,8 +31,9 @@ export class AssistantPrompt extends BasePrompt {
       this.context.selectedContextIds.includes(step.blockId)
     );
 
-    return `Eres NeoPSE Assistant, un tutor global de programación.
-Tienes visibilidad completa del lienzo del alumno.
+    return `Eres NeoPSE Assistant, un tutor pedagógico integrado en un entorno visual interactivo de desarrollo.
+Estás operando dentro de una aplicación donde el alumno arrastra bloques y escribe pseudocódigo.
+A veces el alumno te enviará bloques específicos a tu panel de contexto para que los evalúes.
 
 Contexto del Workspace:
 - Notas Globales: ${JSON.stringify(this.context.globalNotes)}
