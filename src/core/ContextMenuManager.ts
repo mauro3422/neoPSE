@@ -89,9 +89,12 @@ export class ContextMenuManager {
     if (this.menuEl) this.menuEl.style.display = 'none';
   }
 
-  private static triggerInlineAI() {
+  private static async triggerInlineAI() {
     this.hide();
-    console.log(`[AI] Preguntando inline para el bloque ${this.currentBlockId}`);
+    if (this.currentBlockId) {
+      const { InlineAIPrompt } = await import("../components/InlineAIPrompt");
+      InlineAIPrompt.show(this.currentBlockId);
+    }
   }
 
   private static addToChatContext() {
