@@ -6,7 +6,7 @@ interface BlockDefinition {
   title: string;
   className: string;
   structureHtml: string; // El esqueleto físico del contenido
-  controller: new (selector: string | HTMLElement) => Block;
+  controller: new (selector: string | HTMLElement, skipAnimation?: boolean) => Block;
   useHeader?: boolean;
   useResizer?: boolean;
   mass: number;

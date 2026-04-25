@@ -4,12 +4,14 @@ import { AnimationManager } from "../core/AnimationManager";
 import { eventBus, AppEvents } from "../core/EventEmitter";
 import { GeometricEngine } from "../core/GeometricEngine";
 import { relationshipManager } from "../core/RelationshipManager";
+import { BlockType } from "../types";
 
 export class PseudocodeBlock extends Block {
-  constructor(selector: string | HTMLElement) {
-    super(selector);
+  constructor(selector: string | HTMLElement, skipAnimation: boolean = false) {
+    super(selector, BlockType.PSEUDOCODE, skipAnimation);
     this.rehydrate();
     this.initEvents();
+    if (!skipAnimation) AnimationManager.expand(this.element);
   }
 
   private initEvents() {
@@ -39,10 +41,11 @@ export class PseudocodeBlock extends Block {
 }
 
 export class NoteBlock extends Block {
-  constructor(selector: string | HTMLElement) {
-    super(selector);
+  constructor(selector: string | HTMLElement, skipAnimation: boolean = false) {
+    super(selector, BlockType.NOTE, skipAnimation);
     this.rehydrate();
     this.initEvents();
+    if (!skipAnimation) AnimationManager.expand(this.element);
   }
 
   private initEvents() {
@@ -70,12 +73,11 @@ export class FolderBlock extends Block {
   private children: any[] = [];
   private childLinks: any[] = [];
 
-  constructor(selector: string | HTMLElement) {
-    super(selector);
+  constructor(selector: string | HTMLElement, skipAnimation: boolean = false) {
+    super(selector, BlockType.FOLDER, skipAnimation);
     this.rehydrate();
     this.initFolderEvents();
-    // Animación inicial de "chiquito a grande" al nacer
-    AnimationManager.expand(this.element);
+    if (!skipAnimation) AnimationManager.expand(this.element);
   }
 
   private rehydrate() {

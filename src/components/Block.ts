@@ -8,6 +8,7 @@ import { GeometricEngine } from "../core/GeometricEngine";
 import { SelectionManager } from "../core/SelectionManager";
 import { viewport } from "../core/viewport/Viewport";
 import { connectionManager } from "../core/ConnectionManager";
+import { BlockType } from "../types";
 
 export abstract class UIComponent {
   protected element: HTMLElement;
@@ -32,13 +33,17 @@ export abstract class UIComponent {
 }
 
 export abstract class Block extends UIComponent implements Draggable, Resizable {
+  protected type: BlockType;
   protected header: HTMLElement;
   protected resizer: HTMLElement;
   private initialX: number = 0;
   private initialY: number = 0;
 
-  constructor(selector: string | HTMLElement) {
+  constructor(selector: string | HTMLElement, type: BlockType, skipAnimation: boolean = false) {
     super(selector);
+    this.type = type;
+    // skipAnimation se usa en las subclases para omitir expand()
+    if (skipAnimation) { /* logic in subclass */ }
     const header = this.element.querySelector<HTMLElement>('.block-header');
     this.header = header || null as any;
     
@@ -50,8 +55,7 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
     }
 
     // Obtener definición para ver si usa resizer
-    const type = this.id.split('-')[0]; // Heurística simple para el tipo
-    const def = BlockRegistry.getDefinition(type as any);
+    const def = BlockRegistry.getDefinition(this.type);
 
     if (def && def.useResizer !== false) {
       let resizer = this.element.querySelector<HTMLElement>('.resizer');
@@ -185,7 +189,7 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
     const pos = GeometricEngine.getElementPos(this.element);
     return {
       id: this.id,
-      type: this.id.split('_')[0],
+      type: this.type,
       position: pos,
       size: { width: this.element.offsetWidth, height: this.element.offsetHeight },
       content: this.getContent()

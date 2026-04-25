@@ -9,13 +9,16 @@ export class BlockFactory {
     const definition = BlockRegistry.getDefinition(type);
     if (!definition) return null;
 
-    const finalId = id || `block_${Math.random().toString(36).substr(2, 9)}`;
+    const finalId = id || `${type}_${Math.random().toString(36).substr(2, 9)}`;
     const el = document.createElement('div');
     el.id = finalId;
     el.classList.add('world-block', 'block', definition.className);
     el.style.left = `${x}px`;
     el.style.top = `${y}px`;
-    el.innerHTML = definition.structureHtml;
+    const contentWrapper = document.createElement('div');
+    contentWrapper.className = 'block-content';
+    contentWrapper.innerHTML = definition.structureHtml;
+    el.appendChild(contentWrapper);
 
     if (definition.useHeader) {
       this.injectHeader(el, definition.title);

@@ -65,9 +65,12 @@ export class RelationshipManager {
     if (!this.svg.querySelector('defs')) {
       const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
       defs.innerHTML = `
-        <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-        refX="9" refY="3.5" orient="auto">
-          <polygon points="0 0, 10 3.5, 0 7" fill="var(--accent-color)" opacity="0.6" />
+        <marker id="arrowhead" 
+          markerWidth="15" markerHeight="15" 
+          refX="14" refY="7.5" 
+          orient="auto" 
+          markerUnits="userSpaceOnUse">
+          <path d="M 2 2 L 13 7.5 L 2 13 Z" fill="var(--accent-color)" />
         </marker>
       `;
       this.svg.appendChild(defs);

@@ -151,9 +151,10 @@ export class AnimationManager {
         el.style.top = `${curY}px`;
         el.style.transform = `scale(${t})`;
         el.style.opacity = `${progress}`;
-        el.style.filter = `brightness(${1 + (1 - progress) * 2})`; // Brillo inicial que se apaga
+        el.style.filter = `brightness(${1 + (1 - progress) * 2})`; 
 
         if (progress >= 1) {
+          console.log(`[Animation] White Hole Burst completado para ${el.id}`);
           frameTicker.unregister(tickerCallback);
           el.style.willChange = 'auto';
           el.style.filter = 'none';
@@ -162,6 +163,7 @@ export class AnimationManager {
           resolve();
         }
       };
+      console.log(`[Animation] Registrando ticker para White Hole Burst: ${el.id}`);
       frameTicker.register(tickerCallback);
     });
   }

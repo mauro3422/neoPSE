@@ -128,6 +128,8 @@ header {
   display: flex; flex-direction: column;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+  min-width: 160px;
+  min-height: 100px;
 }
 .block:hover { border-color: var(--accent-color); }
 .block.is-selected { border-color: var(--accent-color); box-shadow: 0 0 0 2px var(--accent-color), 0 8px 32px rgba(0, 0, 0, 0.2); }
@@ -183,7 +185,9 @@ body.linking-mode .block { cursor: crosshair !important; border-style: dashed; }
 /* FOLDER BLOCK (PIXEL PERFECT ICON) */
 .folder-block {
   width: 64px;
-  height: 64px;
+  height: 80px;
+  min-width: unset !important;
+  min-height: unset !important;
   background: transparent !important;
   border: none !important;
   backdrop-filter: none !important;
@@ -202,6 +206,8 @@ body.linking-mode .block { cursor: crosshair !important; border-style: dashed; }
   justify-content: center;
   width: 100%;
   height: 100%;
+  padding: 0 !important;
+  overflow: visible !important;
   pointer-events: none;
 }
 

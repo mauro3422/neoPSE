@@ -55,13 +55,10 @@ class Workspace {
       return;
     }
 
-    const canvas = document.getElementById('canvas');
-
     data.blocks
       .filter(b => b.type !== BlockType.ASSISTANT)
       .forEach(b => {
-        const instance = this.spawnBlockInstance(b.type, b.position.x, b.position.y, b.id, b.content, b.size);
-        if (instance && canvas) canvas.appendChild(instance.getElement());
+        this.spawnBlockInstance(b.type, b.position.x, b.position.y, b.id, b.content, b.size);
       });
     data.links.forEach(l => relationshipManager.addLink(l.fromId, l.toId));
   }
@@ -73,27 +70,26 @@ class Workspace {
     // Escuchar creación de bloques (para White Hole Burst)
     eventBus.on(AppEvents.BLOCK_CREATED, (data: any) => {
       const { type, position, id, content, size, spawnOrigin } = data;
+      console.log(`[App] BLOCK_CREATED recibido: ${id} (${type})`, { position, size, hasOrigin: !!spawnOrigin });
       
-      // Asegurar que el bloque existe en el estado ANTES de instanciarlo
-      // Esto es CRÍTICO para que el constructor (rehydrate) funcione
       if (id && !workspaceState.getData().blocks.find(b => b.id === id)) {
         workspaceState.addBlock({ id, type, position, content, size });
       }
 
-      const instance = this.spawnBlockInstance(type, position.x, position.y, id, content, size);
+      const instance = this.spawnBlockInstance(type, position.x, position.y, id, content, size, !!spawnOrigin);
       
       if (instance) {
-        const canvas = document.getElementById('canvas');
-        if (canvas) canvas.appendChild(instance.getElement());
-
         if (spawnOrigin) {
+          console.log(`[App] Iniciando White Hole Burst para ${id}`);
           AnimationManager.whiteHoleBurst(instance.getElement(), spawnOrigin, position);
         }
+      } else {
+        console.error(`[App] Error: No se pudo instanciar el bloque ${id} de tipo ${type}`);
       }
     });
   }
 
-  private spawnBlockInstance(type: BlockType, x: number, y: number, id?: string, content?: string, size?: { width: number, height: number }): Block | null {
+  private spawnBlockInstance(type: BlockType, x: number, y: number, id?: string, content?: string, size?: { width: number, height: number }, skipAnimation: boolean = false): Block | null {
     const def = BlockRegistry.getDefinition(type);
     if (!def) return null;
 
@@ -104,16 +100,18 @@ class Workspace {
     el.setAttribute('tabindex', '-1'); // Permitir foco para captura de eventos
     if (size) {
       // Migración: Si es una carpeta y tiene el tamaño viejo (120 o 80), forzar a 64
-      if (type === BlockType.FOLDER && (size.width > 64)) {
+      if (type === BlockType.FOLDER) {
         el.style.width = `64px`;
-        el.style.height = `64px`;
+        el.style.height = `80px`;
       } else {
         el.style.width = `${size.width}px`;
         el.style.height = `${size.height}px`;
       }
     }
 
-    const instance = new def.controller(el);
+    document.getElementById('canvas')?.appendChild(el);
+
+    const instance = new def.controller(el, skipAnimation);
     blockManager.registerBlock(instance);
     
     if (!id) {
@@ -123,7 +121,6 @@ class Workspace {
          position: { x, y }, 
          content: content || '' 
        });
-       document.getElementById('canvas')?.appendChild(el);
     }
 
     return instance;
