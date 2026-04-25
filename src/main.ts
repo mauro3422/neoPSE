@@ -40,6 +40,7 @@ class Workspace {
 
       this.rehydrateWorkspace();
       this.setupThemeToggle();
+      this.setupAIDebugger();
       this.setupProjectTitle();
       this.setupRecentering();
       this.listenToEvents();
@@ -186,6 +187,53 @@ class Workspace {
         themeManager.toggleTheme();
       });
     }
+  }
+
+  private setupAIDebugger() {
+    const debugBtn = document.getElementById("debug-ai-btn");
+    const modal = document.getElementById("ai-debugger-modal");
+    const closeBtn = document.getElementById("close-debugger-btn");
+    const refreshBtn = document.getElementById("refresh-debugger-btn");
+    const content = document.getElementById("debug-content");
+
+    if (debugBtn && modal) {
+      debugBtn.addEventListener("click", () => {
+        modal.style.display = "flex";
+        this.updateAIDebuggerContent(content);
+      });
+    }
+
+    if (closeBtn && modal) {
+      closeBtn.addEventListener("click", () => {
+        modal.style.display = "none";
+      });
+    }
+
+    if (refreshBtn && content) {
+      refreshBtn.addEventListener("click", () => {
+        this.updateAIDebuggerContent(content);
+      });
+    }
+  }
+
+  private updateAIDebuggerContent(el: HTMLElement | null) {
+    if (!el) return;
+    import("./core/ContextPacker").then(({ ContextPacker }) => {
+      const pkg = ContextPacker.pack();
+      import("./core/PromptBuilder").then(({ AssistantPrompt }) => {
+        const builder = new AssistantPrompt(pkg);
+        const prompt = builder.buildSystemPrompt();
+        
+        el.innerHTML = `
+          <h3 style="color: var(--accent-color); margin-top: 0;">📦 Context Pack (Payload):</h3>
+          <pre style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; overflow-x: auto;">\${JSON.stringify(pkg, null, 2)}</pre>
+          
+          <h3 style="color: var(--accent-color); margin-top: 20px;">📜 Final System Prompt:</h3>
+          <pre style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; white-space: pre-wrap; overflow-x: auto;">\${prompt}</pre>
+        `.replace('\${JSON.stringify(pkg, null, 2)}', JSON.stringify(pkg, null, 2))
+         .replace('\${prompt}', prompt);
+      });
+    });
   }
 }
 

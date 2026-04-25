@@ -17,6 +17,7 @@
       <div class="actions" style="display: flex; gap: 8px;">
         <button id="recenter-btn" class="btn-secondary" title="Centrar Vista">🏠</button>
         <button id="theme-toggle" class="btn-secondary">Tema</button>
+        <button id="debug-ai-btn" class="btn-secondary" title="Depurador de IA">🐞</button>
         <button id="run-btn" class="btn-primary">Ejecutar</button>
       </div>
     </header>
@@ -47,7 +48,22 @@
         </div>
       </div>
     </main>
-  </div>
-  <script type="module" src="/src/main.ts"></script>
+    <!-- Modal Depurador de IA -->
+    <div id="ai-debugger-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+      <div style="background: #1e1e1e; color: #fff; width: 80%; height: 80%; border-radius: 8px; border: 1px solid var(--accent-color); padding: 20px; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+          <h2 style="margin: 0; display: flex; align-items: center; gap: 8px;">🐞 Depurador de Contexto IA</h2>
+          <button id="close-debugger-btn" style="background: transparent; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;">✕</button>
+        </div>
+        <div style="flex: 1; overflow-y: auto; padding-top: 15px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; white-space: pre-wrap;">
+          <div id="debug-content">No hay datos de depuración cargados. Haz clic en actualizar.</div>
+        </div>
+        <div style="padding-top: 10px; text-align: right;">
+          <button id="refresh-debugger-btn" class="btn-primary" style="padding: 8px 16px;">Actualizar Datos</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
 </body>
 </html>
