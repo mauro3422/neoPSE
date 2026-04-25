@@ -1,4 +1,4 @@
-import { Vector2 } from "./Constants";
+import { Vector2 } from "./Config";
 import { IDE_CONFIG } from "./Config";
 import { GeometricEngine } from "./GeometricEngine";
 import { PhysicsEngine, Easings } from "./PhysicsEngine";

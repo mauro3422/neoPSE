@@ -11,17 +11,16 @@ import { BlockType } from "./types";
 import { InputSystem } from "./core/InputSystem";
 import { BlockRegistry } from "./core/BlockRegistry";
 import { initBlockRegistry } from "./core/BlocksRegistration";
-import { StorageManager } from "./core/StorageManager";
 import { ParticleSystem } from "./core/ParticleSystem";
 import { GeometricEngine } from "./core/GeometricEngine";
 import { ContextMenu } from "./components/ContextMenu";
+import { blockManager } from "./core/BlockManager";
 
 initBlockRegistry();
 
 class Workspace {
-  private blocks: Block[] = [];
   // @ts-ignore
-  private _contextMenu!: ContextMenu;
+  private _contextMenu: ContextMenu | null = null;
 
   constructor() {
     this.init();
@@ -40,9 +39,9 @@ class Workspace {
       this.setupThemeToggle();
       this.setupProjectTitle();
       this.setupRecentering();
-      this.initAutoSave();
+      this.listenToEvents();
       
-      console.log('NeoPSE Workspace 0.5.0 (Hardened) Initialized');
+      console.log('NeoPSE Workspace 0.6.0 (Hardened) Initialized');
     } catch (error) {
       console.error('Failed to initialize Workspace:', error);
     }
@@ -66,12 +65,9 @@ class Workspace {
     data.links.forEach(l => relationshipManager.addLink(l.fromId, l.toId));
   }
 
-  private initAutoSave() {
-    setInterval(() => {
-      const data = this.blocks.map(b => b.serialize());
-      StorageManager.save('workspace', data);
-      console.log('Auto-saved workspace');
-    }, 5000);
+  private listenToEvents() {
+    // Escuchar cambios globales de guardado
+    eventBus.on(AppEvents.WORKSPACE_SAVE, () => workspaceState.saveToStorage());
   }
 
   private spawnBlockInstance(type: BlockType, x: number, y: number, id?: string, content?: string, size?: { width: number, height: number }): Block | null {
@@ -82,13 +78,14 @@ class Workspace {
     if (!el) return null;
 
     const finalId = el.id;
+    el.setAttribute('tabindex', '-1'); // Permitir foco para captura de eventos
     if (size) {
       el.style.width = `${size.width}px`;
       el.style.height = `${size.height}px`;
     }
 
     const instance = new def.controller(el);
-    this.blocks.push(instance);
+    blockManager.registerBlock(instance);
     
     if (!id) {
        workspaceState.addBlock({ 
@@ -138,10 +135,20 @@ class Workspace {
   }
 
   private setupContextMenu() {
-    this._contextMenu = new ContextMenu((type, screenPos) => {
-      const worldPos = GeometricEngine.screenToWorld(screenPos);
-      this.spawnBlockInstance(type as BlockType, worldPos.x, worldPos.y);
-    });
+    this._contextMenu = new ContextMenu(
+      (type, screenPos) => {
+        const worldPos = GeometricEngine.screenToWorld(screenPos);
+        const instance = this.spawnBlockInstance(type as BlockType, worldPos.x, worldPos.y);
+        if (instance) {
+          const canvas = document.getElementById('canvas');
+          if (canvas) canvas.appendChild(instance.getElement());
+        }
+      },
+      (targetEl) => {
+        const instance = blockManager.findBlockByElement(targetEl);
+        if (instance) instance.destroy();
+      }
+    );
   }
 
   private setupThemeToggle() {

@@ -4,7 +4,8 @@ export enum AppEvents {
   THEME_CHANGE = 'THEME_CHANGE',
   WORKSPACE_SAVE = 'WORKSPACE_SAVE',
   BLOCK_CREATED = 'BLOCK_CREATED',
-  BLOCK_DELETED = 'BLOCK_DELETED'
+  BLOCK_DELETED = 'BLOCK_DELETED',
+  REQUEST_DELETE = 'REQUEST_DELETE'
 }
 
 /**
@@ -17,6 +18,7 @@ interface EventMap {
   [AppEvents.WORKSPACE_SAVE]: void;
   [AppEvents.BLOCK_CREATED]: string; // blockId
   [AppEvents.BLOCK_DELETED]: string; // blockId
+  [AppEvents.REQUEST_DELETE]: void;
 }
 
 type Callback<T> = (data: T) => void;

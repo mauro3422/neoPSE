@@ -6,6 +6,7 @@ import { eventBus, AppEvents } from "../core/EventEmitter";
 import { workspaceState } from "../core/state/WorkspaceState";
 import { GeometricEngine } from "../core/GeometricEngine";
 import { SelectionManager } from "../core/SelectionManager";
+import { viewport } from "../core/viewport/Viewport";
 import { connectionManager } from "../core/ConnectionManager";
 
 export abstract class UIComponent {
@@ -78,16 +79,34 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
   }
 
   public onDragMove(dx: number, dy: number) {
+    const zoom = viewport.getZoom();
     GeometricEngine.setElementPos(this.element, {
-      x: this.initialX + dx,
-      y: this.initialY + dy
+      x: this.initialX + dx / zoom,
+      y: this.initialY + dy / zoom
     });
     eventBus.emit(AppEvents.BLOCK_MOVE, this.id);
   }
 
-  public onDragEnd() {
+  public onDragEnd(mouseX: number, mouseY: number) {
     this.element.classList.remove('is-dragging');
     this.header.style.cursor = 'grab';
+
+    // Detección de Agujero Negro (Basada en posición del PUNTERO para máxima precisión)
+    const worldMouse = GeometricEngine.screenToWorld({ x: mouseX, y: mouseY });
+    const folders = document.querySelectorAll('.folder-block');
+    
+    for (const folder of Array.from(folders)) {
+      const folderEl = folder as HTMLElement;
+      if (folderEl.id === this.id) continue;
+
+      const folderRect = GeometricEngine.getWorldRect(folderEl);
+      if (GeometricEngine.isPointInRect(worldMouse, folderRect)) {
+        console.log(`[BlackHole] Succionando bloque ${this.id} hacia carpeta ${folderEl.id}`);
+        const connectedIds = relationshipManager.getConnectedComponent(this.id);
+        dragManager.suckConnectedNetwork(this.id, folderEl, connectedIds);
+        break;
+      }
+    }
   }
 
   // --- RESIZABLE INTERFACE ---
@@ -124,7 +143,7 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
       }
 
       if (btn.classList.contains('link-btn')) this.handleLinkClick(e);
-      if (btn.classList.contains('close-btn')) this.destroy(e);
+      if (btn.classList.contains('close-btn')) this.handleDestroyClick(e);
     });
 
     this.element.addEventListener('input', () => {
@@ -138,12 +157,19 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
     connectionManager.start(this.id);
   }
 
-  private destroy(e: Event) {
-    e.stopPropagation();
+  public destroy() {
+    eventBus.emit(AppEvents.BLOCK_DELETED, this.id);
     this.element.remove();
     workspaceState.removeBlock(this.id);
     relationshipManager.removeLinksForBlock(this.id);
-    SelectionManager.clear();
+    if (SelectionManager.getSelected() === this.element) {
+      SelectionManager.clear();
+    }
+  }
+
+  private handleDestroyClick(e: Event) {
+    e.stopPropagation();
+    this.destroy();
   }
 
   public abstract getContent(): string;

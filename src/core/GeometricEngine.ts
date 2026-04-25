@@ -1,4 +1,4 @@
-import { Vector2 } from "./Constants";
+import { Vector2 } from "./Config";
 import { viewport } from "./viewport/Viewport";
 
 export interface Rect {
@@ -35,9 +35,12 @@ export class GeometricEngine {
   public static screenToWorld(screen: Vector2): Vector2 {
     const zoom = viewport.getZoom();
     const offset = viewport.getOffset();
+    const board = document.getElementById('board');
+    const boardRect = board ? board.getBoundingClientRect() : { left: 0, top: 0 };
+    
     return {
-      x: (screen.x - offset.x) / zoom,
-      y: (screen.y - offset.y) / zoom
+      x: (screen.x - boardRect.left - offset.x) / zoom,
+      y: (screen.y - boardRect.top - offset.y) / zoom
     };
   }
 
@@ -47,9 +50,12 @@ export class GeometricEngine {
   public static worldToScreen(world: Vector2): Vector2 {
     const zoom = viewport.getZoom();
     const offset = viewport.getOffset();
+    const board = document.getElementById('board');
+    const boardRect = board ? board.getBoundingClientRect() : { left: 0, top: 0 };
+
     return {
-      x: world.x * zoom + offset.x,
-      y: world.y * zoom + offset.y
+      x: world.x * zoom + offset.x + boardRect.left,
+      y: world.y * zoom + offset.y + boardRect.top
     };
   }
 
@@ -57,6 +63,22 @@ export class GeometricEngine {
    * Obtiene el rectángulo real de un elemento en espacio de mundo.
    */
   public static getWorldRect(el: HTMLElement): Rect {
+    // Si es un bloque, usamos su posición de estilo directamente para evitar lag de frames
+    if (el.classList.contains('block') || el.classList.contains('world-block')) {
+      const pos = this.getElementPos(el);
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      return {
+        x: pos.x,
+        y: pos.y,
+        w: w,
+        h: h,
+        cx: pos.x + w / 2,
+        cy: pos.y + h / 2
+      };
+    }
+
+    // Para otros elementos (como la board o elementos HUD), usamos BoundingClientRect
     const rect = el.getBoundingClientRect();
     const topLeft = this.screenToWorld({ x: rect.left, y: rect.top });
     const bottomRight = this.screenToWorld({ x: rect.right, y: rect.bottom });
@@ -103,6 +125,16 @@ export class GeometricEngine {
   }
 
   /**
+   * Verifica si dos rectángulos se intersectan.
+   */
+  public static intersectRects(r1: Rect, r2: Rect): boolean {
+    return !(r2.x > r1.x + r1.w || 
+             r2.x + r2.w < r1.x || 
+             r2.y > r1.y + r1.h ||
+             r2.y + r2.h < r1.y);
+  }
+
+  /**
    * Clamping de valor entre un rango.
    */
   public static clamp(val: number, min: number, max: number): number {
@@ -128,5 +160,24 @@ export class GeometricEngine {
    */
   public static lerp(start: number, end: number, t: number): number {
     return start + (end - start) * t;
+  }
+
+  /**
+   * Calcula el par de puntos más cercanos entre dos sets preservando su tipo original (Generics).
+   */
+  public static findClosestPair<T extends Vector2>(points1: T[], points2: T[]): { p1: T, p2: T } {
+    let minDistance = Infinity;
+    let bestPair = { p1: points1[0], p2: points2[0] };
+
+    for (const p1 of points1) {
+      for (const p2 of points2) {
+        const dist = this.distance(p1, p2);
+        if (dist < minDistance) {
+          minDistance = dist;
+          bestPair = { p1, p2 };
+        }
+      }
+    }
+    return bestPair;
   }
 }

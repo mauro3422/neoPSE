@@ -1,7 +1,6 @@
 import { eventBus, AppEvents } from "./EventEmitter";
-import { IDE_CONFIG } from "./Config";
+import { IDE_CONFIG, AnchorSide } from "./Config";
 import { GeometricEngine, Rect } from "./GeometricEngine";
-import { GeometryUtils } from "./GeometryUtils";
 import { frameTicker } from "./FrameTicker";
 
 export interface Link {
@@ -13,7 +12,7 @@ export interface Link {
 interface Point {
   x: number;
   y: number;
-  side: 'top' | 'bottom' | 'left' | 'right';
+  side: AnchorSide;
 }
 
 export class RelationshipManager {
@@ -121,7 +120,7 @@ export class RelationshipManager {
       let minDist = Infinity;
       
       fromPoints.forEach(p => {
-        const d = GeometryUtils.distance(p, mousePoint);
+        const d = GeometricEngine.distance(p, mousePoint);
         if (d < minDist) {
           minDist = d;
           bestStart = p;
@@ -133,7 +132,7 @@ export class RelationshipManager {
   }
 
   private calculateBezierPath(start: Point, end: Point, off: number): string {
-    const dist = GeometryUtils.distance(start, end);
+    const dist = GeometricEngine.distance(start, end);
     const curvature = Math.min(dist / 2, 100);
     const cp1 = { x: start.x, y: start.y };
     const cp2 = { x: end.x, y: end.y };
@@ -213,7 +212,7 @@ export class RelationshipManager {
     link.pathElement.setAttribute("d", this.calculateBezierPath(start, end, off));
   }
 
-  private applySideCurvature(side: string, point: any, curvature: number) {
+  private applySideCurvature(side: AnchorSide, point: any, curvature: number) {
     if (side === 'right') point.x += curvature;
     else if (side === 'left') point.x -= curvature;
     else if (side === 'top') point.y -= curvature;
@@ -230,7 +229,7 @@ export class RelationshipManager {
   }
 
   private getBestAnchorPoints(from: Rect, to: Rect): { start: Point, end: Point } {
-    const pair = GeometryUtils.findClosestPair(this.getAnchorPointsForRect(from), this.getAnchorPointsForRect(to));
+    const pair = GeometricEngine.findClosestPair(this.getAnchorPointsForRect(from), this.getAnchorPointsForRect(to));
     return { start: pair.p1, end: pair.p2 };
   }
 }

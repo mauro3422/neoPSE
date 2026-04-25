@@ -1,4 +1,4 @@
-import { Vector2 } from "../core/Constants";
+import { Vector2 } from "../core/Config";
 
 export enum BlockType {
   PSEUDOCODE = 'pseudocode',

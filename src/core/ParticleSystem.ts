@@ -1,4 +1,4 @@
-import { Vector2 } from "./Constants";
+import { Vector2 } from "./Config";
 import { frameTicker } from "./FrameTicker";
 
 interface Particle {

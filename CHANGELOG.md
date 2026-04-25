@@ -2,6 +2,19 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo y en los registros detallados de versión.
 
+## [v0.7.0] - 2026-04-25
+### "Stability & UX Hardening"
+- **Arquitectura de Managers (POO)**: Introducción de `BlockManager` para centralizar el ciclo de vida de componentes y desacoplar el core.
+- **Unificación de Configuración**: Fusión de `Constants` y `Config` en una única fuente de verdad tipada.
+- **Hardening Geométrico (DRY)**: Consolidación de `GeometricEngine` eliminando utilidades duplicadas y aplicando Genéricos para preservación de tipos.
+- **Excelencia UX**: 
+    - Hitboxes de carpetas optimizados al 100% (80x80).
+    - Activación de succión basada en puntero para máxima precisión.
+    - Soporte nativo para borrado vía teclado (`Delete`/`Backspace`) con seguridad anti-typing.
+    - Menú contextual con opción de borrado rápido.
+- **Type Safety Total**: Resolución de todas las dependencias circulares y errores de TSC (Exit Code 0).
+- **Centralización de Entrada**: Refactor de `InputSystem` para gestionar todos los atajos globales.
+
 ## [v0.6.0] - 2026-04-24
 ### "Mauro Mode & Deep Work"
 - **Protocolo de Tiempo Consciente**: Integración de reglas de anclaje temporal en `GEMINI.md`.

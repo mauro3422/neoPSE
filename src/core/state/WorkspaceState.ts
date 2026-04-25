@@ -1,6 +1,6 @@
 import { BlockData, WorkspaceData } from "../../types";
 import { eventBus, AppEvents } from "../EventEmitter";
-import { APP_CONFIG } from "../Constants";
+import { IDE_CONFIG } from "../Config";
 
 export interface ExtendedWorkspaceData extends WorkspaceData {
   theme: string;
@@ -74,22 +74,26 @@ export class WorkspaceState {
     this.saveTimeout = window.setTimeout(() => this.saveToStorage(), 500);
   }
 
-  private saveToStorage() {
+  public saveToStorage() {
+    // Sincronizar usando el DOM para mantener el desacoplamiento total (evita dependencia circular con BlockManager)
     this.data.blocks = this.data.blocks.map(block => {
       const el = document.getElementById(block.id);
       if (el) {
-        const { x, y } = { x: parseFloat(el.style.left) || 0, y: parseFloat(el.style.top) || 0 };
-        const size = { width: el.offsetWidth, height: el.offsetHeight };
-        return { ...block, position: { x, y }, size };
+        const x = parseFloat(el.style.left) || 0;
+        const y = parseFloat(el.style.top) || 0;
+        const width = el.offsetWidth;
+        const height = el.offsetHeight;
+        return { ...block, position: { x, y }, size: { width, height } };
       }
       return block;
     });
 
-    localStorage.setItem(APP_CONFIG.STORAGE_KEY, JSON.stringify(this.data));
+    localStorage.setItem(IDE_CONFIG.STORAGE.KEY, JSON.stringify(this.data));
+    console.log("[WorkspaceState] Guardado exitoso.");
   }
 
   private loadFromStorage() {
-    const saved = localStorage.getItem(APP_CONFIG.STORAGE_KEY);
+    const saved = localStorage.getItem(IDE_CONFIG.STORAGE.KEY);
     if (saved) {
       try {
         this.data = { ...this.data, ...JSON.parse(saved) };

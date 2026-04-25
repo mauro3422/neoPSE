@@ -6,11 +6,24 @@ export class PseudocodeBlock extends Block {
   constructor(selector: string | HTMLElement) {
     super(selector);
     this.rehydrate();
+    this.initEvents();
+  }
+
+  private initEvents() {
+    const editor = this.element.querySelector<HTMLElement>('.code-area');
+    if (editor) {
+      editor.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          document.execCommand('insertText', false, '    ');
+        }
+      });
+    }
   }
 
   private rehydrate() {
     const data = this.getStateData();
-    const editor = this.element.querySelector<HTMLElement>('.pseudocode');
+    const editor = this.element.querySelector<HTMLElement>('.code-area');
     if (editor) {
       if (data && data.content) editor.textContent = data.content;
       editor.setAttribute('contenteditable', 'true');
@@ -18,7 +31,7 @@ export class PseudocodeBlock extends Block {
   }
 
   public getContent(): string {
-    return this.element.querySelector('.pseudocode')?.textContent || '';
+    return this.element.querySelector('.code-area')?.textContent || '';
   }
 }
 

@@ -1,7 +1,7 @@
 import { viewport } from "./Viewport";
 import { Draggable, dragManager } from "../input/DragManager";
 import { eventBus, AppEvents } from "../EventEmitter";
-import { Vector2 } from "../Constants";
+import { Vector2 } from "../Config";
 import { SelectionManager } from "../SelectionManager";
 
 export class ViewportController implements Draggable {
@@ -32,7 +32,7 @@ export class ViewportController implements Draggable {
     eventBus.emit(AppEvents.VIEWPORT_CHANGE);
   }
 
-  public onDragEnd() {}
+  public onDragEnd(_x: number, _y: number) {}
 
   private onWheel(e: WheelEvent) {
     e.preventDefault();

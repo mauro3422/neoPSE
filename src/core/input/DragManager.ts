@@ -7,7 +7,7 @@ import { AnimationManager } from "../AnimationManager";
 export interface Draggable {
   onDragStart(x: number, y: number): void;
   onDragMove(dx: number, dy: number): void;
-  onDragEnd(): void;
+  onDragEnd(x: number, y: number): void;
   getElement?(): HTMLElement;
 }
 
@@ -54,10 +54,10 @@ export class DragManager {
     }
   }
 
-  private onMouseUp() {
+  private onMouseUp(e: MouseEvent) {
     if (this.activeDraggable) {
       if (this.isDragging) {
-        this.activeDraggable.onDragEnd();
+        this.activeDraggable.onDragEnd(e.clientX, e.clientY);
       }
       this.activeDraggable = null;
     }

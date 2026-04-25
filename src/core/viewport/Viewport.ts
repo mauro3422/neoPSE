@@ -1,4 +1,4 @@
-import { Vector2, APP_CONFIG } from "../Constants";
+import { Vector2, IDE_CONFIG } from "../Config";
 
 export class Viewport {
   private offset: Vector2 = { x: 0, y: 0 };
@@ -21,7 +21,7 @@ export class Viewport {
   private shakeIntensity: number = 0;
 
   public setZoom(newZoom: number) {
-    this.zoom = Math.min(Math.max(newZoom, APP_CONFIG.MIN_ZOOM), APP_CONFIG.MAX_ZOOM);
+    this.zoom = Math.min(Math.max(newZoom, IDE_CONFIG.GEOMETRY.MIN_ZOOM), IDE_CONFIG.GEOMETRY.MAX_ZOOM);
     this.render();
   }
 

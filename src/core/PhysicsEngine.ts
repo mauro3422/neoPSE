@@ -1,4 +1,4 @@
-import { Vector2 } from "./Constants";
+import { Vector2 } from "./Config";
 
 export type EasingFunction = (t: number) => number;
 

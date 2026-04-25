@@ -182,8 +182,8 @@ body.linking-mode .block { cursor: crosshair !important; border-style: dashed; }
 
 /* FOLDER BLOCK (PURE ICON LOOK) */
 .folder-block {
-  width: 120px;
-  height: 120px;
+  width: 80px;
+  height: 80px;
   background: transparent !important;
   border: none !important;
   backdrop-filter: none !important;

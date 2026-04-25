@@ -1,12 +1,18 @@
 import { BlockRegistry } from "../core/BlockRegistry";
-import { Vector2 } from "../core/Constants";
+import { Vector2 } from "../core/Config";
 
 export class ContextMenu {
   private element: HTMLElement | null = null;
   private onItemSelected: (type: string, position: Vector2) => void;
+  private onDeleteRequested: (el: HTMLElement) => void;
+  private targetElement: HTMLElement | null = null;
 
-  constructor(onItemSelected: (type: string, position: Vector2) => void) {
+  constructor(
+    onItemSelected: (type: string, position: Vector2) => void,
+    onDeleteRequested: (el: HTMLElement) => void
+  ) {
     this.onItemSelected = onItemSelected;
+    this.onDeleteRequested = onDeleteRequested;
     this.initListeners();
   }
 
@@ -16,6 +22,7 @@ export class ContextMenu {
 
     board.addEventListener('contextmenu', (e) => {
       e.preventDefault();
+      this.targetElement = (e.target as HTMLElement).closest('.block');
       this.show(e.clientX, e.clientY);
     });
 
@@ -29,19 +36,30 @@ export class ContextMenu {
     this.element.className = 'context-menu';
     this.element.style.left = `${x}px`;
     this.element.style.top = `${y}px`;
+    this.element.style.zIndex = "10000";
 
-    const definitions = BlockRegistry.getAllDefinitions();
-    
-    definitions.forEach(def => {
+    if (this.targetElement) {
       const item = document.createElement('div');
-      item.className = 'context-menu-item';
-      item.innerHTML = `<span>${def.title}</span>`;
+      item.className = 'context-menu-item delete-item';
+      item.innerHTML = `<span>Eliminar</span>`;
       item.onclick = () => {
-        this.onItemSelected(def.type, { x, y });
+        if (this.targetElement) this.onDeleteRequested(this.targetElement);
         this.hide();
       };
-      this.element?.appendChild(item);
-    });
+      this.element.appendChild(item);
+    } else {
+      const definitions = BlockRegistry.getAllDefinitions();
+      definitions.forEach(def => {
+        const item = document.createElement('div');
+        item.className = 'context-menu-item';
+        item.innerHTML = `<span>${def.title}</span>`;
+        item.onclick = () => {
+          this.onItemSelected(def.type, { x, y });
+          this.hide();
+        };
+        this.element?.appendChild(item);
+      });
+    }
 
     document.body.appendChild(this.element);
   }
