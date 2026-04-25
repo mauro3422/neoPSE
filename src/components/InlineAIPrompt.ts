@@ -83,6 +83,12 @@ export class InlineAIPrompt {
     setTimeout(() => input.focus(), 50);
   }
 
+  private static escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   private static renderMessages() {
     if (!this.activeEl || !this.currentBlockId) return;
     const container = this.activeEl.querySelector('.prompt-messages') as HTMLElement;
@@ -91,7 +97,7 @@ export class InlineAIPrompt {
     const messages = this.conversations.get(this.currentBlockId) || [];
     container.innerHTML = messages.map(m => `
       <div class="inline-msg ${m.role}">
-        <div class="msg-content">${m.content}</div>
+        <div class="msg-content">${this.escapeHtml(m.content)}</div>
       </div>
     `).join('');
 
