@@ -1,3 +1,5 @@
+import { eventBus, AppEvents } from "./EventEmitter";
+
 /**
  * Estado que gestiona los bloques adjuntos al chat de IA.
  */
@@ -12,6 +14,14 @@ export class ChatContextState {
 
   public static init() {
     this.renderChips();
+
+    eventBus.on(AppEvents.BLOCK_DELETED, (id: string) => {
+      if (this.selectedIds.includes(id)) {
+        this.selectedIds = this.selectedIds.filter(sid => sid !== id);
+        this.save();
+        this.renderChips();
+      }
+    });
   }
 
   public static add(id: string) {
