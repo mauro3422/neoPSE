@@ -9,7 +9,6 @@ export const Easings = {
   easeInOutQuad: (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
   easeInCubic: (t: number) => t * t * t,
   easeOutCubic: (t: number) => (--t) * t * t + 1,
-  // Efecto elástico para que los bloques "reboten" un poco
   elasticOut: (t: number) => {
     const p = 0.3;
     return Math.pow(2, -10 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
@@ -18,12 +17,13 @@ export const Easings = {
     const c1 = 1.70158;
     const c3 = c1 + 1;
     return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-  }
+  },
+  easeInExpo: (t: number) => t === 0 ? 0 : Math.pow(2, 10 * t - 10),
 };
 
 export class PhysicsEngine {
   /**
-   * Calcula la posición en una trayectoria Bézier (Órbita).
+   * Calcula la posición en una trayectoria Bézier (Órbita) con rotación y escala.
    */
   public static calculateSuctionPath(
     start: Vector2, 

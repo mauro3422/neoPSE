@@ -15,6 +15,7 @@ import { ParticleSystem } from "./core/ParticleSystem";
 import { GeometricEngine } from "./core/GeometricEngine";
 import { ContextMenu } from "./components/ContextMenu";
 import { blockManager } from "./core/BlockManager";
+import { AnimationManager } from "./core/AnimationManager";
 
 initBlockRegistry();
 
@@ -30,7 +31,7 @@ class Workspace {
   private init() {
     try {
       InputSystem.init();
-      ParticleSystem.init('board');
+      ParticleSystem.init('canvas');
       new ViewportController('board');
 
       new AssistantBlock('#assistant-panel');
@@ -68,6 +69,28 @@ class Workspace {
   private listenToEvents() {
     // Escuchar cambios globales de guardado
     eventBus.on(AppEvents.WORKSPACE_SAVE, () => workspaceState.saveToStorage());
+
+    // Escuchar creación de bloques (para White Hole Burst)
+    eventBus.on(AppEvents.BLOCK_CREATED, (data: any) => {
+      const { type, position, id, content, size, spawnOrigin } = data;
+      
+      // Asegurar que el bloque existe en el estado ANTES de instanciarlo
+      // Esto es CRÍTICO para que el constructor (rehydrate) funcione
+      if (id && !workspaceState.getData().blocks.find(b => b.id === id)) {
+        workspaceState.addBlock({ id, type, position, content, size });
+      }
+
+      const instance = this.spawnBlockInstance(type, position.x, position.y, id, content, size);
+      
+      if (instance) {
+        const canvas = document.getElementById('canvas');
+        if (canvas) canvas.appendChild(instance.getElement());
+
+        if (spawnOrigin) {
+          AnimationManager.whiteHoleBurst(instance.getElement(), spawnOrigin, position);
+        }
+      }
+    });
   }
 
   private spawnBlockInstance(type: BlockType, x: number, y: number, id?: string, content?: string, size?: { width: number, height: number }): Block | null {

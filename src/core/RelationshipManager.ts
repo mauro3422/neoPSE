@@ -189,8 +189,21 @@ export class RelationshipManager {
     return Array.from(ids);
   }
 
+  public getLinksForBlock(blockId: string): Link[] {
+    return this.links.filter(l => l.fromId === blockId || l.toId === blockId);
+  }
+
   public drawAll() {
     this.links.forEach(link => this.updatePath(link));
+  }
+
+  public highlightLinks(blockId: string, active: boolean) {
+    this.links
+      .filter(l => l.fromId === blockId || l.toId === blockId)
+      .forEach(l => {
+        l.pathElement.style.opacity = active ? "1" : "0.4";
+        l.pathElement.style.strokeWidth = active ? "4" : "2";
+      });
   }
 
   public drawLinksForBlock(blockId: string) {

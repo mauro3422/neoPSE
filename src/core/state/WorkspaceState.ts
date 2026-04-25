@@ -74,22 +74,14 @@ export class WorkspaceState {
     this.saveTimeout = window.setTimeout(() => this.saveToStorage(), 500);
   }
 
-  public saveToStorage() {
-    // Sincronizar usando el DOM para mantener el desacoplamiento total (evita dependencia circular con BlockManager)
-    this.data.blocks = this.data.blocks.map(block => {
-      const el = document.getElementById(block.id);
-      if (el) {
-        const x = parseFloat(el.style.left) || 0;
-        const y = parseFloat(el.style.top) || 0;
-        const width = el.offsetWidth;
-        const height = el.offsetHeight;
-        return { ...block, position: { x, y }, size: { width, height } };
-      }
-      return block;
-    });
+  public async saveToStorage() {
+    const { blockManager } = await import("../BlockManager");
+    
+    // Serializar todas las instancias registradas (maneja carpetas con hijos)
+    this.data.blocks = blockManager.getBlocks().map(b => b.serialize());
 
     localStorage.setItem(IDE_CONFIG.STORAGE.KEY, JSON.stringify(this.data));
-    console.log("[WorkspaceState] Guardado exitoso.");
+    console.log("[WorkspaceState] Guardado exitoso (Full Serialize).");
   }
 
   private loadFromStorage() {

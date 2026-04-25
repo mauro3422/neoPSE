@@ -41,6 +41,13 @@ export class BlockManager {
     return this.blocks.find(b => b.getElement() === el);
   }
 
+  public deleteBlock(id: string) {
+    const block = this.blocks.find(b => b.getElement().id === id);
+    if (block) {
+      block.destroy();
+    }
+  }
+
   public deleteSelected() {
     const selected = SelectionManager.getSelected();
     if (selected) {

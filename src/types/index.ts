@@ -25,6 +25,11 @@ export interface BlockData {
   content: string;
 }
 
+export interface FolderData extends BlockData {
+  children: BlockData[];
+  childLinks: LinkData[];
+}
+
 export interface LinkData {
   fromId: string;
   toId: string;

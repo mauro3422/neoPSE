@@ -39,14 +39,31 @@ export class ContextMenu {
     this.element.style.zIndex = "10000";
 
     if (this.targetElement) {
-      const item = document.createElement('div');
-      item.className = 'context-menu-item delete-item';
-      item.innerHTML = `<span>Eliminar</span>`;
-      item.onclick = () => {
+      const isFolder = this.targetElement.classList.contains('folder-block');
+      
+      if (isFolder) {
+        const openItem = document.createElement('div');
+        openItem.className = 'context-menu-item';
+        openItem.innerHTML = `<span>Abrir Módulo</span>`;
+        openItem.onclick = () => {
+          if (this.targetElement) {
+            import("../core/EventEmitter").then(({ eventBus, AppEvents }) => {
+              eventBus.emit(AppEvents.REQUEST_OPEN_FOLDER, this.targetElement!.id);
+            });
+          }
+          this.hide();
+        };
+        this.element.appendChild(openItem);
+      }
+
+      const deleteItem = document.createElement('div');
+      deleteItem.className = 'context-menu-item delete-item';
+      deleteItem.innerHTML = `<span>Eliminar</span>`;
+      deleteItem.onclick = () => {
         if (this.targetElement) this.onDeleteRequested(this.targetElement);
         this.hide();
       };
-      this.element.appendChild(item);
+      this.element.appendChild(deleteItem);
     } else {
       const definitions = BlockRegistry.getAllDefinitions();
       definitions.forEach(def => {

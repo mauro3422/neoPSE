@@ -13,6 +13,11 @@ Todos los cambios notables en este proyecto serán documentados en este archivo 
     - Sistema de deselección inteligente: clic en el fondo ahora limpia la selección actual.
     - Soporte nativo para borrado vía teclado (`Delete`/`Backspace`) con seguridad anti-typing.
     - Menú contextual con opción de borrado rápido.
+- **Mecanismo de Agujero Blanco (Expulsión)**:
+    - Implementación de persistencia anidada para bloques dentro de carpetas.
+    - Animación "White Hole Burst" con partículas, brillo y aterrizaje elástico.
+    - Restauración automática de enlaces al abrir módulos.
+    - Fix crítico: los bloques ahora se rehidratan correctamente con su contenido al ser expulsados.
 - **Hardening SOLID**: Refactorización de gestión de eventos en `Block.ts` mediante delegación de acciones.
 - **Type Safety Total**: Resolución de todas las dependencias circulares y errores de TSC (Exit Code 0).
 - **Centralización de Entrada**: Refactor de `InputSystem` para gestionar todos los atajos globales.

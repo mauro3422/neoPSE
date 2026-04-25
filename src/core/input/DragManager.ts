@@ -3,6 +3,7 @@ import { BlockRegistry } from "../BlockRegistry";
 import { GeometricEngine } from "../GeometricEngine";
 import { relationshipManager } from "../RelationshipManager";
 import { AnimationManager } from "../AnimationManager";
+import { blockManager } from "../BlockManager";
 
 export interface Draggable {
   onDragStart(x: number, y: number): void;
@@ -75,16 +76,33 @@ export class DragManager {
     folder.classList.add('is-eating');
 
     const updateLinks = () => {
-      allConnectedIds.forEach(id => relationshipManager.drawLinksForBlock(id));
+      allConnectedIds.forEach(id => {
+        relationshipManager.drawLinksForBlock(id);
+        relationshipManager.highlightLinks(id, true);
+      });
     };
 
     const folderRect = GeometricEngine.getWorldRect(folder);
     const destination = { x: folderRect.cx, y: folderRect.cy };
+    const folderInstance = blockManager.getBlocks().find(b => b.getElement() === folder) as any;
+
+    // Capturar data de bloques y links ANTES de succionar
+    if (folderInstance && folderInstance.addSwallowedBlock) {
+      allConnectedIds.forEach(id => {
+        const block = blockManager.getBlocks().find(b => b.getElement().id === id);
+        if (block) {
+          folderInstance.addSwallowedBlock(block.serialize());
+          // Capturar links relacionados
+          const links = relationshipManager.getLinksForBlock(id);
+          links.forEach(l => folderInstance.addSwallowedLink({ fromId: l.fromId, toId: l.toId }));
+        }
+      });
+    }
 
     suckPromises.push(
       AnimationManager.blackHoleSuck(el, destination, IDE_CONFIG.TRANSITIONS.SUCTION_DURATION, updateLinks).then(() => {
         relationshipManager.removeLinksForBlock(blockId);
-        el.remove();
+        blockManager.deleteBlock(blockId);
       })
     );
 
@@ -101,7 +119,7 @@ export class DragManager {
           await new Promise(r => setTimeout(r, (index + 1) * IDE_CONFIG.PHYSICS.STAGGER_DELAY));
           await AnimationManager.blackHoleSuck(connectedEl, destination, duration, updateLinks, false);
           relationshipManager.removeLinksForBlock(id);
-          connectedEl.remove();
+          blockManager.deleteBlock(id);
           resolve();
         });
         suckPromises.push(promise);

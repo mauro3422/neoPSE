@@ -5,7 +5,8 @@ export enum AppEvents {
   WORKSPACE_SAVE = 'WORKSPACE_SAVE',
   BLOCK_CREATED = 'BLOCK_CREATED',
   BLOCK_DELETED = 'BLOCK_DELETED',
-  REQUEST_DELETE = 'REQUEST_DELETE'
+  REQUEST_DELETE = 'REQUEST_DELETE',
+  REQUEST_OPEN_FOLDER = 'REQUEST_OPEN_FOLDER'
 }
 
 /**
@@ -16,9 +17,10 @@ interface EventMap {
   [AppEvents.VIEWPORT_CHANGE]: void;
   [AppEvents.THEME_CHANGE]: string; // theme name
   [AppEvents.WORKSPACE_SAVE]: void;
-  [AppEvents.BLOCK_CREATED]: string; // blockId
+  [AppEvents.BLOCK_CREATED]: any; // block data object
   [AppEvents.BLOCK_DELETED]: string; // blockId
   [AppEvents.REQUEST_DELETE]: void;
+  [AppEvents.REQUEST_OPEN_FOLDER]: string; // folderId
 }
 
 type Callback<T> = (data: T) => void;

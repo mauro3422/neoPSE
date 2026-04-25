@@ -17,23 +17,28 @@ export class ParticleSystem {
     this.container = document.getElementById(containerId) || document.body;
   }
 
-  public static emit(pos: Vector2, color: string, count: number = 10) {
+  public static emit(pos: Vector2, color: string, count: number = 15) {
     for (let i = 0; i < count; i++) {
       const el = document.createElement('div');
       el.className = 'particle';
+      
+      const size = Math.random() * 6 + 2;
+      el.style.width = `${size}px`;
+      el.style.height = `${size}px`;
       el.style.background = color;
+      el.style.boxShadow = `0 0 10px ${color}`;
       el.style.left = `${pos.x}px`;
       el.style.top = `${pos.y}px`;
       this.container.appendChild(el);
 
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 5 + 2;
+      const speed = Math.random() * 8 + 4;
 
       const p: Particle = {
         el,
         pos: { ...pos },
         vel: { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed },
-        life: 1,
+        life: 0.8 + Math.random() * 0.4,
         maxLife: 1
       };
 

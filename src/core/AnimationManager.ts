@@ -74,17 +74,23 @@ export class AnimationManager {
           { x: startPos.x + startPos.w / 2, y: startPos.y + startPos.h / 2 },
           destWorld,
           progress,
-          Easings.easeInCubic
+          Easings.easeInExpo
         );
 
         const curW = startPos.w * (1 - progress);
         const curH = startPos.h * (1 - progress);
+        
+        // Efecto "Fideo": Orientación hacia el destino + Estiramiento (Squash & Stretch)
+        const angle = Math.atan2(destWorld.y - physics.pos.y, destWorld.x - physics.pos.x) * (180 / Math.PI);
+        const stretch = 1 + progress * 2; // Se estira hasta 3 veces su largo
+        const squeeze = 1 - progress * 0.5; // Se comprime a la mitad su ancho
 
         el.style.left = `${physics.pos.x - curW / 2}px`;
         el.style.top = `${physics.pos.y - curH / 2}px`;
         el.style.width = `${curW}px`;
         el.style.height = `${curH}px`;
         el.style.opacity = `${1 - progress * 0.8}`;
+        el.style.transform = `rotate(${angle}deg) scale(${stretch}, ${squeeze})`;
 
         if (onUpdate) onUpdate();
 
@@ -93,14 +99,69 @@ export class AnimationManager {
           el.style.willChange = 'auto';
           
           if (emitEffects) {
-            ParticleSystem.emit(destWorld, 'var(--accent-color)', 15);
-            viewport.shake(2, 200);
+            ParticleSystem.emit(destWorld, 'var(--accent-color)', 25);
+            viewport.shake(3, 300);
+            
+            // Feedback visual en la carpeta (Vibe Upgrade)
+            if (!(destination as any).x) {
+              const folder = destination as HTMLElement;
+              folder.animate([
+                { transform: 'scale(1)', filter: 'brightness(1)' },
+                { transform: 'scale(1.3)', filter: 'brightness(1.5) drop-shadow(0 0 15px var(--accent-color))' },
+                { transform: 'scale(1)', filter: 'brightness(1)' }
+              ], { duration: 400, easing: 'ease-out' });
+            }
           }
           
           resolve();
         }
       };
 
+      frameTicker.register(tickerCallback);
+    });
+  }
+
+  /**
+   * Efecto "White Hole": El elemento nace en un punto y sale disparado a su posición.
+   */
+  public static async whiteHoleBurst(el: HTMLElement, origin: Vector2, destination: Vector2, duration: number = 600) {
+    // Inicializar estado invisible/centrado en el origen
+    el.style.transform = 'scale(0)';
+    el.style.opacity = '0';
+    el.style.left = `${origin.x}px`;
+    el.style.top = `${origin.y}px`;
+    el.style.willChange = 'transform, opacity, left, top';
+
+    // Efecto visual de "explosión" inicial
+    ParticleSystem.emit(origin, 'var(--accent-color)', 20);
+
+    const startTime = performance.now();
+
+    return new Promise<void>((resolve) => {
+      const tickerCallback = (_: number, timestamp: number) => {
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const t = Easings.easeOutBack(progress);
+
+        // Interpolar posición (de origen a destino)
+        const curX = origin.x + (destination.x - origin.x) * progress;
+        const curY = origin.y + (destination.y - origin.y) * progress;
+
+        el.style.left = `${curX}px`;
+        el.style.top = `${curY}px`;
+        el.style.transform = `scale(${t})`;
+        el.style.opacity = `${progress}`;
+        el.style.filter = `brightness(${1 + (1 - progress) * 2})`; // Brillo inicial que se apaga
+
+        if (progress >= 1) {
+          frameTicker.unregister(tickerCallback);
+          el.style.willChange = 'auto';
+          el.style.filter = 'none';
+          el.style.left = `${destination.x}px`;
+          el.style.top = `${destination.y}px`;
+          resolve();
+        }
+      };
       frameTicker.register(tickerCallback);
     });
   }
