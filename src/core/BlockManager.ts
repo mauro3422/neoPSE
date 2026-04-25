@@ -18,6 +18,10 @@ export class BlockManager {
     return this.instance;
   }
 
+  public getBlock(id: string): Block | undefined {
+    return this.blocks.find(b => b.getElement().id === id);
+  }
+
   private initListeners() {
     eventBus.on(AppEvents.BLOCK_DELETED, (id: string) => {
       this.blocks = this.blocks.filter(b => b.getElement().id !== id);

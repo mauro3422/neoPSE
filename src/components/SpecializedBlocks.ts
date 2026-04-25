@@ -100,17 +100,14 @@ export class FolderBlock extends Block {
       this.openModule();
     });
 
-    this.element.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      this.enableRenaming();
-    });
+
 
     eventBus.on(AppEvents.REQUEST_OPEN_FOLDER, (id: string) => {
       if (id === this.id) this.openModule();
     });
   }
 
-  private enableRenaming() {
+  public enableRenaming() {
     const label = this.element.querySelector<HTMLElement>('.folder-label');
     if (!label) return;
 

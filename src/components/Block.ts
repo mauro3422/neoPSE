@@ -129,13 +129,17 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
   }
 
   private initBaseEvents() {
-    // Selección por clic (Fase de captura para prioridad)
     this.element.addEventListener('mousedown', () => {
       SelectionManager.select(this.element);
     }, { capture: true });
 
-    // Delegación de acciones de botones
     this.element.addEventListener('click', (e) => this.handleBlockClick(e));
+
+    this.element.addEventListener('contextmenu', async (e) => {
+      e.preventDefault();
+      const { ContextMenuManager } = await import("../core/ContextMenuManager");
+      ContextMenuManager.show(this.id, e.clientX, e.clientY, this.type === 'folder');
+    });
 
     this.element.addEventListener('input', () => {
       this.syncState(this.getContent());
