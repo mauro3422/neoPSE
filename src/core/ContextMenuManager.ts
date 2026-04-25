@@ -7,16 +7,30 @@ import { ChatContextState } from "./ChatContextState";
 export class ContextMenuManager {
   private static menuEl: HTMLElement | null = null;
   private static currentBlockId: string | null = null;
-  private static renameOpt: HTMLElement | null = null;
 
   public static init() {
-    if (this.menuEl) return;
+    // Buscar si ya existe en el DOM para evitar duplicados por recargas HMR
+    const existing = document.querySelector('.context-menu') as HTMLElement;
+    if (existing) {
+      this.menuEl = existing;
+    } else {
+      this.menuEl = document.createElement('div');
+      this.menuEl.className = 'context-menu';
+      this.menuEl.style.display = 'none';
+      document.body.appendChild(this.menuEl);
+    }
+  }
 
-    this.menuEl = document.createElement('div');
-    this.menuEl.className = 'context-menu';
-    this.menuEl.style.display = 'none';
-    
-    // Crear opciones estáticas una sola vez
+  public static show(blockId: string, x: number, y: number, isFolder: boolean = false) {
+    this.init();
+    this.currentBlockId = blockId;
+
+    if (!this.menuEl) return;
+
+    // Limpiar contenido previo SIEMPRE para evitar duplicación de opciones
+    this.menuEl.innerHTML = '';
+
+    // 1. Opción: Preguntar a IA (Inline)
     const askAiOpt = document.createElement('div');
     askAiOpt.className = 'context-menu-item';
     askAiOpt.innerHTML = '🤖 Preguntar a IA (Inline)';
@@ -26,6 +40,7 @@ export class ContextMenuManager {
     };
     this.menuEl.appendChild(askAiOpt);
 
+    // 2. Opción: Añadir al Contexto
     const addCtxOpt = document.createElement('div');
     addCtxOpt.className = 'context-menu-item';
     addCtxOpt.innerHTML = '💬 Añadir al Contexto';
@@ -39,15 +54,19 @@ export class ContextMenuManager {
     divider.className = 'context-menu-divider';
     this.menuEl.appendChild(divider);
 
-    this.renameOpt = document.createElement('div');
-    this.renameOpt.className = 'context-menu-item';
-    this.renameOpt.innerHTML = '✏️ Renombrar';
-    this.renameOpt.onclick = (e) => {
-      e.stopPropagation();
-      this.triggerRename();
-    };
-    this.menuEl.appendChild(this.renameOpt);
+    // 3. Opción: Renombrar (Solo carpetas)
+    if (isFolder) {
+      const renameOpt = document.createElement('div');
+      renameOpt.className = 'context-menu-item';
+      renameOpt.innerHTML = '✏️ Renombrar';
+      renameOpt.onclick = (e) => {
+        e.stopPropagation();
+        this.triggerRename();
+      };
+      this.menuEl.appendChild(renameOpt);
+    }
 
+    // 4. Opción: Eliminar
     const deleteOpt = document.createElement('div');
     deleteOpt.className = 'context-menu-item delete-item';
     deleteOpt.innerHTML = '🗑️ Eliminar';
@@ -57,27 +76,13 @@ export class ContextMenuManager {
     };
     this.menuEl.appendChild(deleteOpt);
 
-    document.body.appendChild(this.menuEl);
-
-    // Eventos globales robustos
-    window.addEventListener('click', () => this.hide());
-    window.addEventListener('contextmenu', () => this.hide());
-  }
-
-  public static show(blockId: string, x: number, y: number, isFolder: boolean = false) {
-    this.init();
-    this.currentBlockId = blockId;
-
-    if (!this.menuEl) return;
-
-    // Mostrar/Ocultar Renombrar
-    if (this.renameOpt) {
-      this.renameOpt.style.display = isFolder ? 'flex' : 'none';
-    }
-
     this.menuEl.style.left = `${x}px`;
     this.menuEl.style.top = `${y}px`;
     this.menuEl.style.display = 'flex';
+
+    // Eventos globales para cerrar (Se reasignan sin duplicar)
+    window.onclick = () => this.hide();
+    window.oncontextmenu = () => this.hide();
   }
 
   public static hide() {
@@ -87,7 +92,6 @@ export class ContextMenuManager {
   private static triggerInlineAI() {
     this.hide();
     console.log(`[AI] Preguntando inline para el bloque ${this.currentBlockId}`);
-    // TODO: Implementar overlay de pregunta
   }
 
   private static addToChatContext() {
