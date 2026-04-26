@@ -31,10 +31,22 @@ Para modificar el espacio de trabajo, DEBES incluir en tu respuesta un bloque JS
 
 Si NO necesitas ejecutar ninguna acción en el lienzo, "tool_use" debe ser omitido o ser null.
 
-⚠️ REGLA DE ORO OBLIGATORIA: Si el usuario te pide crear, generar, borrar, conectar o editar código, algoritmos o notas, es IRREVOCABLE que emitas el bloque JSON con la herramienta correcta para plasmarlo visualmente en la UI. No te limites solo a responder con texto plano.
+⚠️ REGLA DE ORO OBLIGATORIA: Es IRREVOCABLE que si usas una herramienta, incluyas el nodo "params" con TODOS sus argumentos requeridos. Jamás dejes una herramienta vacía.
+
+Ejemplo estructural OBLIGATORIO para emitir herramientas:
+{
+  "message": "Explicación para el alumno.",
+  "tool_use": {
+    "action": "create_block",
+    "params": {
+      "type": "pseudocode",
+      "content": "Algoritmo MiAlgoritmo\\n  Definir x Como Entero\\nFinAlgoritmo"
+    }
+  }
+}
 
 Catálogo de herramientas permitidas:
-1. "create_block": params -> { "type": "pseudocode" | "note" | "folder", "content"?: string }
+1. "create_block": params -> { "type": "pseudocode" | "note" | "folder", "content": string }
 2. "edit_block_content": params -> { "blockId": string, "content": string }
 3. "link_blocks": params -> { "fromId": string, "toId": string }
 4. "delete_block": params -> { "blockId": string }

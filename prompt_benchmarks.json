@@ -1,0 +1,58 @@
+[
+  {
+    "query": "Genera el algoritmo de Fibonacci hasta N.",
+    "type": "assistant",
+    "durationMs": 8025,
+    "isTool": true,
+    "isPseInt": true,
+    "success": true
+  },
+  {
+    "query": "Crea un algoritmo de ordenamiento BubbleSort en pseudocódigo.",
+    "type": "assistant",
+    "durationMs": 9234,
+    "isTool": true,
+    "isPseInt": true,
+    "success": true
+  },
+  {
+    "query": "Optimiza el cálculo de factorial en JS.",
+    "type": "inline",
+    "durationMs": 15592,
+    "isTool": true,
+    "isPseInt": false,
+    "success": true
+  },
+  {
+    "query": "Diseña un conversor de grados Celsius a Fahrenheit.",
+    "type": "assistant",
+    "durationMs": 8448,
+    "isTool": true,
+    "isPseInt": true,
+    "success": true
+  },
+  {
+    "query": "Explícame cómo funciona un bucle Mientras (While) en PSeInt.",
+    "type": "assistant",
+    "durationMs": 11833,
+    "isTool": false,
+    "isPseInt": true,
+    "success": true
+  },
+  {
+    "query": "Corrige este fragmento: X == 10",
+    "type": "inline",
+    "durationMs": 8943,
+    "isTool": true,
+    "isPseInt": false,
+    "success": true
+  },
+  {
+    "query": "Crea un sistema de login con 3 intentos máximos.",
+    "type": "assistant",
+    "durationMs": 16715,
+    "isTool": true,
+    "isPseInt": true,
+    "success": true
+  }
+]
