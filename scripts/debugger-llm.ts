@@ -128,10 +128,23 @@ class BenchmarkEngine {
 
     console.log("\n==============================================");
     console.log("📊 RESUMEN DE BENCHMARKS OPERATIVOS");
-    console.log(`🏆 Cobertura: ${passed}/${total} exitosos.`);
+    console.log(`🏆 Cobertura Global: ${passed}/${total} exitosos.`);
     console.log(`⏱️ Tiempo Promedio: ${avgTime}ms`);
     console.log(`🛠️ Uso de Herramientas: ${toolRate}%`);
     console.log(`🧠 Cumplimiento PSeInt: ${pseIntRate}%`);
+
+    // Desglose por categoría
+    const categories = ['logic', 'syntax', 'conversational'];
+    categories.forEach(cat => {
+      const catResults = results.filter(r => r.category === cat);
+      if (catResults.length > 0) {
+        const catPassed = catResults.filter(r => r.success).length;
+        const catAvg = Math.round(catResults.reduce((acc, r) => acc + r.durationMs, 0) / catResults.length);
+        console.log(`\n📂 Categoría: ${cat.toUpperCase()}`);
+        console.log(`   🔸 Éxito: ${catPassed}/${catResults.length}`);
+        console.log(`   🔸 Latencia: ${catAvg}ms`);
+      }
+    });
     console.log("==============================================");
   }
 }
