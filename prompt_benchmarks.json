@@ -1,32 +1,27 @@
 [
   {
-    "query": "Conecta el bloque node-1 con el bloque node-2 mediante un enlace directo.",
-    "type": "assistant",
-    "durationMs": 5396,
+    "query": "Modifica el bloque node-1 para cambiar el valor inicial a 100.",
+    "type": "inline",
+    "category": "syntax",
+    "durationMs": 4044,
     "isTool": true,
-    "isPseInt": false,
+    "isPseInt": true,
     "success": true
   },
   {
     "query": "Crea un bloque de pseudocódigo que calcule el área de un círculo pidiéndole el radio al usuario.",
     "type": "assistant",
-    "durationMs": 8994,
+    "category": "logic",
+    "durationMs": 8656,
     "isTool": true,
     "isPseInt": true,
     "success": true
   },
   {
-    "query": "Modifica el bloque node-1 para cambiar el valor inicial a 100.",
-    "type": "inline",
-    "durationMs": 9832,
-    "isTool": true,
-    "isPseInt": true,
-    "success": true
-  },
-  {
-    "query": "Limpia el espacio de trabajo eliminando todos los bloques existentes.",
+    "query": "Conecta el bloque node-1 con el bloque node-2 mediante un enlace directo.",
     "type": "assistant",
-    "durationMs": 6630,
+    "category": "logic",
+    "durationMs": 9472,
     "isTool": true,
     "isPseInt": false,
     "success": true
@@ -34,15 +29,26 @@
   {
     "query": "Diseña una matriz bidimensional 3x3 para un juego de Tres en Línea (Tic-Tac-Toe).",
     "type": "assistant",
-    "durationMs": 3719,
+    "category": "logic",
+    "durationMs": 8046,
     "isTool": false,
+    "isPseInt": false,
+    "success": true
+  },
+  {
+    "query": "Limpia el espacio de trabajo eliminando todos los bloques existentes.",
+    "type": "assistant",
+    "category": "logic",
+    "durationMs": 12211,
+    "isTool": true,
     "isPseInt": false,
     "success": true
   },
   {
     "query": "Crea un menú interactivo con opciones: 1. Sumar, 2. Restar, 3. Salir usando un bucle Repetir.",
     "type": "assistant",
-    "durationMs": 9151,
+    "category": "syntax",
+    "durationMs": 8530,
     "isTool": true,
     "isPseInt": false,
     "success": true
@@ -50,23 +56,35 @@
   {
     "query": "Escribe un algoritmo de ordenamiento por inserción (Insertion Sort) en PSeInt.",
     "type": "assistant",
-    "durationMs": 12539,
+    "category": "logic",
+    "durationMs": 13254,
     "isTool": true,
     "isPseInt": true,
     "success": true
   },
   {
-    "query": "Agrega una nota en el lienzo explicando la complejidad algorítmica de QuickSort.",
+    "query": "Crea una función recursiva para resolver el problema de las Torres de Hanói para N discos.",
     "type": "assistant",
-    "durationMs": 5150,
+    "category": "logic",
+    "durationMs": 11032,
     "isTool": true,
     "isPseInt": false,
     "success": true
   },
   {
-    "query": "Crea una función recursiva para resolver el problema de las Torres de Hanói para N discos.",
+    "query": "Agrega una nota en el lienzo explicando la complejidad algorítmica de QuickSort.",
     "type": "assistant",
-    "durationMs": 19774,
+    "category": "conversational",
+    "durationMs": 14282,
+    "isTool": true,
+    "isPseInt": false,
+    "success": true
+  },
+  {
+    "query": "Simula el flujo de una cola de banco donde los clientes entran y salen secuencialmente.",
+    "type": "assistant",
+    "category": "logic",
+    "durationMs": 12101,
     "isTool": true,
     "isPseInt": true,
     "success": true
@@ -74,23 +92,8 @@
   {
     "query": "Escribe un algoritmo para determinar si un año ingresado por el usuario es bisiesto.",
     "type": "assistant",
-    "durationMs": 11340,
-    "isTool": true,
-    "isPseInt": true,
-    "success": true
-  },
-  {
-    "query": "Simula el flujo de una cola de banco donde los clientes entran y salen secuencialmente.",
-    "type": "assistant",
-    "durationMs": 14033,
-    "isTool": true,
-    "isPseInt": true,
-    "success": true
-  },
-  {
-    "query": "Implementa el algoritmo de búsqueda lineal para encontrar un número dentro de un arreglo.",
-    "type": "assistant",
-    "durationMs": 11107,
+    "category": "syntax",
+    "durationMs": 17267,
     "isTool": true,
     "isPseInt": true,
     "success": true
@@ -98,7 +101,17 @@
   {
     "query": "Modifica el bloque node-1 para agregar una instrucción que imprima 'Fin del Proceso'.",
     "type": "inline",
-    "durationMs": 11394,
+    "category": "syntax",
+    "durationMs": 13366,
+    "isTool": true,
+    "isPseInt": true,
+    "success": true
+  },
+  {
+    "query": "Implementa el algoritmo de búsqueda lineal para encontrar un número dentro de un arreglo.",
+    "type": "assistant",
+    "category": "logic",
+    "durationMs": 20673,
     "isTool": true,
     "isPseInt": true,
     "success": true
@@ -106,15 +119,17 @@
   {
     "query": "Conecta el bloque node-1 con node-2 para guiar la ejecución lógica secuencial.",
     "type": "assistant",
-    "durationMs": 8272,
+    "category": "logic",
+    "durationMs": 11024,
     "isTool": true,
-    "isPseInt": false,
+    "isPseInt": true,
     "success": true
   },
   {
     "query": "Crea una carpeta llamada 'Estructuras de Datos' para organizar los módulos.",
     "type": "assistant",
-    "durationMs": 6158,
+    "category": "logic",
+    "durationMs": 13208,
     "isTool": true,
     "isPseInt": false,
     "success": true
@@ -122,7 +137,8 @@
   {
     "query": "Calcula el Máximo Común Divisor (MCD) de dos números usando el algoritmo de Euclides.",
     "type": "assistant",
-    "durationMs": 8374,
+    "category": "logic",
+    "durationMs": 12344,
     "isTool": true,
     "isPseInt": true,
     "success": true
@@ -130,7 +146,8 @@
   {
     "query": "Escribe el algoritmo de la Criba de Eratóstenes para encontrar números primos hasta el 200.",
     "type": "assistant",
-    "durationMs": 15709,
+    "category": "logic",
+    "durationMs": 18347,
     "isTool": true,
     "isPseInt": true,
     "success": true
@@ -138,7 +155,8 @@
   {
     "query": "Desarrolla la lógica para validar si una tarjeta de crédito es válida usando el Algoritmo de Luhn.",
     "type": "assistant",
-    "durationMs": 17000,
+    "category": "logic",
+    "durationMs": 20167,
     "isTool": true,
     "isPseInt": true,
     "success": true
@@ -146,23 +164,26 @@
   {
     "query": "Diseña un conversor de moneda de Pesos a Dólares pidiendo la tasa de cambio actual.",
     "type": "assistant",
-    "durationMs": 12019,
+    "category": "syntax",
+    "durationMs": 17389,
     "isTool": true,
-    "isPseInt": true,
+    "isPseInt": false,
     "success": true
   },
   {
     "query": "Escribe un algoritmo que invierta una cadena de texto ingresada por el usuario.",
     "type": "assistant",
-    "durationMs": 14452,
-    "isTool": false,
+    "category": "syntax",
+    "durationMs": 17494,
+    "isTool": true,
     "isPseInt": true,
     "success": true
   },
   {
     "query": "Implementa una pila (Stack) utilizando un arreglo con operaciones Apilar y Desapilar.",
     "type": "assistant",
-    "durationMs": 11151,
+    "category": "logic",
+    "durationMs": 16795,
     "isTool": true,
     "isPseInt": true,
     "success": true
@@ -170,31 +191,26 @@
   {
     "query": "Agrega una nota recordando que los arreglos en PSeInt por defecto son base 1.",
     "type": "assistant",
-    "durationMs": 6812,
+    "category": "conversational",
+    "durationMs": 14193,
     "isTool": true,
+    "isPseInt": true,
+    "success": true
+  },
+  {
+    "query": "Genera la tabla de multiplicar de un número N del 1 al 12.",
+    "type": "assistant",
+    "category": "syntax",
+    "durationMs": 10277,
+    "isTool": false,
     "isPseInt": false,
     "success": true
   },
   {
     "query": "Calcula el sueldo neto de un empleado restando los impuestos de ley según su rango.",
     "type": "assistant",
-    "durationMs": 16863,
-    "isTool": true,
-    "isPseInt": false,
-    "success": true
-  },
-  {
-    "query": "Genera la tabla de multiplicar de un número N del 1 al 12.",
-    "type": "assistant",
-    "durationMs": 8007,
-    "isTool": false,
-    "isPseInt": false,
-    "success": true
-  },
-  {
-    "query": "Crea un bloque que simule el juego de adivinar un número aleatorio entre 1 y 100.",
-    "type": "assistant",
-    "durationMs": 6940,
+    "category": "logic",
+    "durationMs": 19117,
     "isTool": true,
     "isPseInt": false,
     "success": true
@@ -202,7 +218,8 @@
   {
     "query": "Escribe un algoritmo que determine la calificación final en base a 3 exámenes parciales.",
     "type": "assistant",
-    "durationMs": 19150,
+    "category": "syntax",
+    "durationMs": 17565,
     "isTool": true,
     "isPseInt": true,
     "success": true
@@ -210,23 +227,26 @@
   {
     "query": "Encuentra el elemento mayor y el menor dentro de un arreglo desordenado.",
     "type": "assistant",
-    "durationMs": 17653,
+    "category": "logic",
+    "durationMs": 13663,
     "isTool": true,
     "isPseInt": false,
+    "success": true
+  },
+  {
+    "query": "Crea un bloque que simule el juego de adivinar un número aleatorio entre 1 y 100.",
+    "type": "assistant",
+    "category": "logic",
+    "durationMs": 16629,
+    "isTool": true,
+    "isPseInt": true,
     "success": true
   },
   {
     "query": "Determina si un número entero ingresado es par o impar usando el operador Mod.",
     "type": "assistant",
-    "durationMs": 16077,
-    "isTool": true,
-    "isPseInt": false,
-    "success": true
-  },
-  {
-    "query": "Construye una solución para verificar si una matriz dada es simétrica.",
-    "type": "assistant",
-    "durationMs": 13521,
+    "category": "syntax",
+    "durationMs": 17221,
     "isTool": true,
     "isPseInt": false,
     "success": true
@@ -234,7 +254,17 @@
   {
     "query": "Escribe el pseudocódigo para resolver una ecuación de segundo grado (Fórmula general).",
     "type": "assistant",
-    "durationMs": 16336,
+    "category": "logic",
+    "durationMs": 19337,
+    "isTool": true,
+    "isPseInt": true,
+    "success": true
+  },
+  {
+    "query": "Construye una solución para verificar si una matriz dada es simétrica.",
+    "type": "assistant",
+    "category": "logic",
+    "durationMs": 19101,
     "isTool": true,
     "isPseInt": true,
     "success": true

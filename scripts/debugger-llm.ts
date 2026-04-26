@@ -65,6 +65,7 @@ class TestScenario {
       return {
         query: this.test.q,
         type: this.test.type,
+        category: (this.test as any).category || 'logic',
         durationMs,
         isTool,
         isPseInt,
@@ -74,6 +75,7 @@ class TestScenario {
       return {
         query: this.test.q,
         type: this.test.type,
+        category: (this.test as any).category || 'logic',
         durationMs: 0,
         isTool: false,
         isPseInt: false,
@@ -87,8 +89,8 @@ class TestScenario {
 class BenchmarkEngine {
   private scenarios: TestScenario[] = [];
 
-  public addTest(q: string, type: 'assistant' | 'inline' = 'assistant') {
-    this.scenarios.push(new TestScenario({ q, type }));
+  public addTest(q: string, type: 'assistant' | 'inline' = 'assistant', category: 'logic' | 'syntax' | 'conversational' = 'logic') {
+    this.scenarios.push(new TestScenario({ q, type, category }));
   }
 
   public async runAll(concurrency: number = 4) {
@@ -136,8 +138,8 @@ class BenchmarkEngine {
 
 // Inicializar y correr tests
 const engine = new BenchmarkEngine();
-SCENARIOS.forEach(s => engine.addTest(s.q, s.type));
+SCENARIOS.forEach(s => engine.addTest(s.q, s.type, s.category));
 
-engine.runAll(3).then(() => {
+engine.runAll(4).then(() => {
   console.log("🚀 Benchmark finalizado correctamente.");
 });
