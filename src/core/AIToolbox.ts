@@ -16,6 +16,44 @@ export interface AITool {
 export class AIToolbox {
   private static tools: Map<string, AITool> = new Map();
 
+  private static resolveBlockId(id: string): string {
+    const blocks = blockManager.getBlocks().map((b: any) => b.serialize());
+    
+    // 1. Si el ID es real, retornarlo
+    if (blocks.find(b => b.id === id)) return id;
+
+    // 2. Resolver alias estilo "node-1" o "bloque-2"
+    const typeMatch = id.match(/(pseudocode|note|folder|node|bloque)[\-_]?(\d+)/i);
+    if (typeMatch) {
+      const index = parseInt(typeMatch[2], 10) - 1;
+      const requestedType = typeMatch[1].toLowerCase();
+      
+      if (requestedType === 'node' || requestedType === 'bloque') {
+        if (blocks[index]) return blocks[index].id;
+      } else {
+        const typeMap: Record<string, string> = {
+          'pseudocode': 'pseudocode',
+          'note': 'note',
+          'folder': 'folder'
+        };
+        const mappedType = typeMap[requestedType];
+        if (mappedType) {
+          const typedBlocks = blocks.filter(b => b.type === mappedType);
+          if (typedBlocks[index]) return typedBlocks[index].id;
+        }
+      }
+    }
+
+    // 3. Fallback: Buscar por coincidencia parcial de contenido
+    const matchByContent = blocks.find(b => 
+      b.content.toLowerCase().includes(id.toLowerCase()) || 
+      id.toLowerCase().includes(b.content.toLowerCase())
+    );
+    if (matchByContent) return matchByContent.id;
+
+    return id;
+  }
+
   public static init() {
     this.tools.clear();
 
@@ -60,10 +98,11 @@ export class AIToolbox {
         required: ["blockId", "content"]
       },
       execute: (args: any) => {
-        const { blockId, content } = args;
-        const block = blockManager.getBlocks().find(b => b.serialize().id === blockId);
+        const realId = this.resolveBlockId(args.blockId);
+        const { content } = args;
+        const block = blockManager.getBlocks().find(b => b.serialize().id === realId);
         if (block) {
-          const el = document.getElementById(blockId);
+          const el = document.getElementById(realId);
           const editor = el?.querySelector('.code-area') || el?.querySelector('.note-input');
           if (editor) {
             editor.textContent = content;
@@ -92,7 +131,9 @@ export class AIToolbox {
         required: ["fromId", "toId"]
       },
       execute: (args: any) => {
-        relationshipManager.addLink(args.fromId, args.toId);
+        const fromRealId = this.resolveBlockId(args.fromId);
+        const toRealId = this.resolveBlockId(args.toId);
+        relationshipManager.addLink(fromRealId, toRealId);
       }
     });
 
@@ -107,7 +148,8 @@ export class AIToolbox {
         required: ["blockId"]
       },
       execute: (args: any) => {
-        blockManager.deleteBlock(args.blockId);
+        const realId = this.resolveBlockId(args.blockId);
+        blockManager.deleteBlock(realId);
       }
     });
   }

@@ -53,7 +53,10 @@ class Workspace {
 
   private rehydrateWorkspace() {
     const data = workspaceState.getData();
-    if (data.blocks.length === 0) {
+    const tutorialSpawned = localStorage.getItem('neopse_tutorial_spawned');
+
+    if (data.blocks.length === 0 && !tutorialSpawned) {
+      localStorage.setItem('neopse_tutorial_spawned', 'true');
       this.spawnInitialTutorial();
       return;
     }

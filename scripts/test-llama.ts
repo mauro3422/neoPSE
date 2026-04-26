@@ -143,8 +143,45 @@ async function runAutomatedTests() {
   }
 }
 
+async function runSimulation() {
+  console.log("\n🎮 INICIANDO SIMULACIÓN END-TO-END DE LA IA...\n");
+
+  const query = "Por favor crea una nota que diga 'Hola Mundo' en el lienzo.";
+  console.log(`💬 Solicitud del Alumno:\n"${query}"\n`);
+
+  const builder = new InlinePrompt(mockContext, "node-1");
+  const systemPrompt = builder.buildSystemPrompt();
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "fallback-model",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: query }
+        ],
+        temperature: 0.2,
+        response_format: { type: "json_object" }
+      })
+    });
+    const data = await res.json();
+    const content = data.choices?.[0]?.message?.content || "VACÍO";
+    
+    console.log("🤖 RESPUESTA DE LA IA:");
+    console.log(content);
+    
+    console.log("\n✅ Simulación completada con éxito.");
+  } catch(e) {
+    console.error("💥 Error en simulación:", e);
+  }
+}
+
 if (process.argv.includes('--automated')) {
   runAutomatedTests();
+} else if (process.argv.includes('--simulate')) {
+  runSimulation();
 } else {
   console.log("🚀 Consola Interactiva de Depuración de IA iniciada.");
   askQuestion();
