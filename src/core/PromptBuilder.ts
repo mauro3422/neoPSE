@@ -19,20 +19,25 @@ Instrucciones obligatorias:
   protected getToolUseGuidelines(): string {
     return `
 🛠️ ACCIONES DISPONIBLES EN EL LIENZO:
-Puedes modificar el espacio de trabajo. Para activar una herramienta, incluye en tu mensaje el bloque JSON EXACTO (sin modificar el esquema):
+Para modificar el espacio de trabajo, DEBES incluir en tu respuesta un bloque JSON exactamente bajo esta estructura:
 
 {
+  "message": "Tu respuesta pedagógica o saludo al alumno",
   "tool_use": {
-    "action": "create_block",
-    "params": { "type": "pseudocode", "content": "texto inicial", "x": 200, "y": 200 }
+    "action": "create_block" | "edit_block_content" | "link_blocks" | "delete_block",
+    "params": { ... }
   }
 }
 
-Acciones válidas:
-- "create_block": params -> { "type": "pseudocode" | "note" | "folder", "content"?: string }
-- "edit_block_content": params -> { "blockId": string, "content": string }
-- "link_blocks": params -> { "fromId": string, "toId": string }
-- "delete_block": params -> { "blockId": string }
+Si NO necesitas ejecutar ninguna acción en el lienzo, "tool_use" debe ser omitido o ser null.
+
+Catálogo de herramientas permitidas:
+1. "create_block": params -> { "type": "pseudocode" | "note" | "folder", "content"?: string }
+2. "edit_block_content": params -> { "blockId": string, "content": string }
+3. "link_blocks": params -> { "fromId": string, "toId": string }
+4. "delete_block": params -> { "blockId": string }
+
+⚠️ REGLA DE ORO: Si te piden borrar, editar o conectar bloques, es obligatorio emitir el JSON arriba descrito.
 `;
   }
 

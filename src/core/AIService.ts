@@ -49,7 +49,8 @@ export class AIService {
             })) : []),
             { role: "user", content: prompt }
           ],
-          temperature: 0.6
+          temperature: 0.2,
+          response_format: { type: "json_object" }
         })
       });
 
@@ -58,14 +59,35 @@ export class AIService {
       }
 
       const data = await response.json();
-      const rawMessage = data.choices?.[0]?.message?.content || "No obtuve respuesta del modelo.";
+      const rawContent = data.choices?.[0]?.message?.content || "No obtuve respuesta del modelo.";
       
+      let finalMessage = rawContent;
+      let toolPayload: string | null = null;
+
+      try {
+        const parsed = JSON.parse(rawContent);
+        if (parsed.message) {
+          finalMessage = parsed.message;
+        }
+        if (parsed.tool_use) {
+          toolPayload = JSON.stringify({ tool_use: parsed.tool_use });
+        }
+      } catch (e) {
+        // Fallback texto plano
+      }
+
       const { AIToolbox } = await import("./AIToolbox");
       AIToolbox.init();
-      const processedMessage = AIToolbox.parseAndExecute(rawMessage);
+      
+      if (toolPayload) {
+        AIToolbox.parseAndExecute(toolPayload);
+        finalMessage += `\n⚡ *[Acción ejecutada correctamente]*`;
+      } else {
+        finalMessage = AIToolbox.parseAndExecute(finalMessage);
+      }
 
       return {
-        message: processedMessage
+        message: finalMessage
       };
     } catch (error) {
       console.error("[AIService] Error al conectar con el modelo local:", error);

@@ -98,5 +98,54 @@ function askQuestion() {
   });
 }
 
-console.log("🚀 Consola Interactiva de Depuración de IA iniciada.");
-askQuestion();
+async function runAutomatedTests() {
+  const tests = [
+    { name: "Creación de Bloques", query: "Por favor crea una nota que diga 'Revisión final'" },
+    { name: "Edición de Bloques", query: "Modifica el bloque node-1 para que su contenido sea 'X = 100'" },
+    { name: "Enlazado de Bloques", query: "Conecta el bloque node-1 con el bloque node-2" },
+    { name: "Eliminación de Bloques", query: "Borra el bloque node-2 del tablero" }
+  ];
+
+  console.log("\n🧪 INICIANDO SUITE DE TESTS AUTOMATIZADA DE HERRAMIENTAS...\n");
+
+  for (const t of tests) {
+    console.log(`\n--------------------------------------\n📌 TEST: ${t.name}`);
+    console.log(`💬 Query: "${t.query}"`);
+
+    const builder = new InlinePrompt(mockContext, "node-1");
+    const systemPrompt = builder.buildSystemPrompt();
+
+    try {
+      const res = await fetch("http://127.0.0.1:8000/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "fallback-model",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: t.query }
+          ],
+          temperature: 0.2,
+          response_format: { type: "json_object" }
+        })
+      });
+      const data = await res.json();
+      const content = data.choices?.[0]?.message?.content || "VACÍO";
+      
+      console.log("🤖 RESPUESTA:");
+      console.log(content);
+      
+      const success = content.includes('"tool_use"');
+      console.log(success ? "✅ FORMATO CORRECTO" : "❌ FALLÓ (Sin JSON de tool)");
+    } catch(e) {
+      console.error("💥 Error en test:", e);
+    }
+  }
+}
+
+if (process.argv.includes('--automated')) {
+  runAutomatedTests();
+} else {
+  console.log("🚀 Consola Interactiva de Depuración de IA iniciada.");
+  askQuestion();
+}
