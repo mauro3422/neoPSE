@@ -56,11 +56,18 @@ export class AssistantBlock extends UIComponent {
     let thinkText = '';
     let mainText = text;
     
-    if (text.includes('<think>') && text.includes('</think>')) {
-      const thinkStart = text.indexOf('<think>');
-      const thinkEnd = text.indexOf('</think>');
-      thinkText = text.substring(thinkStart + 7, thinkEnd).trim();
-      mainText = (text.substring(0, thinkStart) + text.substring(thinkEnd + 8)).trim();
+    const lowerText = text.toLowerCase();
+    if (lowerText.includes('<think>')) {
+      const thinkStart = lowerText.indexOf('<think>');
+      const thinkEnd = lowerText.indexOf('</think>');
+      
+      if (thinkEnd !== -1) {
+        thinkText = text.substring(thinkStart + 7, thinkEnd).trim();
+        mainText = (text.substring(0, thinkStart) + text.substring(thinkEnd + 8)).trim();
+      } else {
+        thinkText = text.substring(thinkStart + 7).trim();
+        mainText = text.substring(0, thinkStart).trim();
+      }
     }
 
     if (thinkText) {

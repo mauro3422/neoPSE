@@ -101,11 +101,18 @@ export class InlineAIPrompt {
       let thinkText = '';
       let mainText = m.content;
       
-      if (m.content.includes('<think>') && m.content.includes('</think>')) {
-        const thinkStart = m.content.indexOf('<think>');
-        const thinkEnd = m.content.indexOf('</think>');
-        thinkText = m.content.substring(thinkStart + 7, thinkEnd).trim();
-        mainText = (m.content.substring(0, thinkStart) + m.content.substring(thinkEnd + 8)).trim();
+      const lowerContent = m.content.toLowerCase();
+      if (lowerContent.includes('<think>')) {
+        const thinkStart = lowerContent.indexOf('<think>');
+        const thinkEnd = lowerContent.indexOf('</think>');
+        
+        if (thinkEnd !== -1) {
+          thinkText = m.content.substring(thinkStart + 7, thinkEnd).trim();
+          mainText = (m.content.substring(0, thinkStart) + m.content.substring(thinkEnd + 8)).trim();
+        } else {
+          thinkText = m.content.substring(thinkStart + 7).trim();
+          mainText = m.content.substring(0, thinkStart).trim();
+        }
       }
 
       let thinkHtml = '';
