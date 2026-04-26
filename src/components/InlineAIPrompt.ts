@@ -163,13 +163,16 @@ export class InlineAIPrompt {
     // Llamada real al servicio de IA
     import("../core/AIService").then(({ AIService }) => {
       AIService.sendMessage(text, aiContext, this.currentBlockId || undefined, messages).then(response => {
-        messages.push({ role: 'ai', content: response.message });
-        this.renderMessages();
-        if (btn) {
-          btn.textContent = 'Enviar 📨';
-          btn.style.opacity = '1';
-          btn.style.pointerEvents = 'auto';
-        }
+        import("../core/AIToolbox").then(({ AIToolbox }) => {
+          const processedMessage = AIToolbox.parseAndExecute(response.message);
+          messages.push({ role: 'ai', content: processedMessage });
+          this.renderMessages();
+          if (btn) {
+            btn.textContent = 'Enviar 📨';
+            btn.style.opacity = '1';
+            btn.style.pointerEvents = 'auto';
+          }
+        });
       });
     }).catch(err => {
       console.error("[Inline Chat] Error en AIService:", err);

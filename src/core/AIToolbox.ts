@@ -165,7 +165,8 @@ export class AIToolbox {
         properties: {}
       },
       execute: () => {
-        blockManager.getBlocks().forEach(b => blockManager.deleteBlock(b.serialize().id));
+        const blocks = [...blockManager.getBlocks()];
+        blocks.forEach(b => blockManager.deleteBlock(b.serialize().id));
       }
     });
   }

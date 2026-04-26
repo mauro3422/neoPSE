@@ -32,8 +32,11 @@ export class AssistantBlock extends UIComponent {
           const aiContext = ContextPacker.pack();
           import("../core/AIService").then(({ AIService }) => {
             AIService.sendMessage(text, aiContext, undefined, rawHistory).then(response => {
-              this.addMessage('ai', response.message);
-              this.syncState(JSON.stringify(this.history));
+              import("../core/AIToolbox").then(({ AIToolbox }) => {
+                const processedMessage = AIToolbox.parseAndExecute(response.message);
+                this.addMessage('ai', processedMessage);
+                this.syncState(JSON.stringify(this.history));
+              });
             }).catch(err => {
               console.error("[AssistantBlock] Error:", err);
               this.addMessage('ai', '❌ Error al conectar con el cerebro de IA.');
