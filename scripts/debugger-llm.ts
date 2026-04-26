@@ -74,7 +74,8 @@ class TestScenario {
         isPseInt,
         freeMemGB: freeMem,
         totalMemGB: totalMem,
-        success: content.length > 10
+        success: content.length > 10,
+        response: content
       };
     } catch (e) {
       return {
@@ -113,7 +114,7 @@ class BenchmarkEngine {
         const res = await scenario.run(mockContext);
         results.push(res);
 
-        fs.appendFileSync(reportPath, `\n## 📝 TEST: ${res.query}\n- **Tipo:** ${res.type}\n- **Tiempo:** ${res.durationMs}ms\n- **PSeInt:** ${res.isPseInt ? "Sí" : "No"}\n- **Herramienta:** ${res.isTool ? "Sí" : "No"}\n`);
+        fs.appendFileSync(reportPath, `\n## 📝 TEST: ${res.query}\n- **Tipo:** ${res.type}\n- **Tiempo:** ${res.durationMs}ms\n- **PSeInt:** ${res.isPseInt ? "Sí" : "No"}\n- **Herramienta:** ${res.isTool ? "Sí" : "No"}\n\n### 💬 Respuesta Generada:\n\`\`\`\n${res.response}\n\`\`\`\n`);
       }
     };
 
