@@ -158,17 +158,31 @@ function processTools(response: string) {
 }
 
 async function runSimulation() {
-  console.log("\n🎮 INICIANDO PIPELINE END-TO-END DE LA IA...");
+  console.log("\n🎮 INICIANDO PIPELINE DE EVALUACIÓN DE CALIDAD IA...");
   printWorkspace();
 
   const prompts = [
-    "Crea una nota que diga 'Suma de datos'",
-    "Borra el nodo node-1",
-    "Borra todos los bloques del lienzo"
+    {
+      query: "Crea un algoritmo premium en pseudocódigo para un Personaje Guerrero de la Tribu Agua (Vida=100, Fuerza=80, Control Elemento=Agua)",
+      assertions: [
+        (res: string) => res.includes("tool_use") || res.includes('"action"'),
+        (res: string) => res.length > 150, // No respuestas perezosas
+        (res: string) => res.toLowerCase().includes("guerrero") || res.toLowerCase().includes("tribu")
+      ]
+    },
+    {
+      query: "Quiero un sistema de herencia completo en JS para transferir stats de un Avatar a un discípulo.",
+      assertions: [
+        (res: string) => res.includes("class ") || res.includes("prototype") || res.includes(".stats"),
+        (res: string) => res.length > 200
+      ]
+    }
   ];
 
-  for (const query of prompts) {
-    console.log(`\n==============================================\n💬 ORDEN DEL ALUMNO: "${query}"`);
+  let passedAll = true;
+
+  for (const test of prompts) {
+    console.log(`\n==============================================\n💬 ORDEN: "${test.query}"`);
     
     const builder = new AssistantPrompt(mockContext);
     const systemPrompt = builder.buildSystemPrompt();
@@ -181,7 +195,7 @@ async function runSimulation() {
           model: "fallback-model",
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: query }
+            { role: "user", content: test.query }
           ],
           temperature: 0.2
         })
@@ -194,10 +208,29 @@ async function runSimulation() {
       
       processTools(content);
       printWorkspace();
+
+      // Correr validaciones estrictas de calidad
+      console.log("🕵️ Evaluando métricas de calidad...");
+      let testPassed = true;
+      test.assertions.forEach((assertion, index) => {
+        const ok = assertion(content);
+        console.log(`  🔍 Criterio #${index + 1}: ${ok ? "✅ PASADO" : "❌ FALLADO"}`);
+        if (!ok) testPassed = false;
+      });
+
+      if (!testPassed) passedAll = false;
       
     } catch(e) {
       console.error("💥 Error en el pipeline:", e);
+      passedAll = false;
     }
+  }
+
+  console.log("\n==============================================");
+  if (passedAll) {
+    console.log("🏆 RESULTADO GLOBAL: TODOS LOS TESTS PASADOS (Calidad Certificada) 🟢");
+  } else {
+    console.log("⚠️ RESULTADO GLOBAL: ALGUNOS TESTS NO PASARON LAS MÉTRICAS DE RIGOR 🔴");
   }
 }
 
