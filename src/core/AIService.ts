@@ -58,8 +58,14 @@ export class AIService {
       }
 
       const data = await response.json();
+      const rawMessage = data.choices?.[0]?.message?.content || "No obtuve respuesta del modelo.";
+      
+      const { AIToolbox } = await import("./AIToolbox");
+      AIToolbox.init();
+      const processedMessage = AIToolbox.parseAndExecute(rawMessage);
+
       return {
-        message: data.choices?.[0]?.message?.content || "No obtuve respuesta del modelo."
+        message: processedMessage
       };
     } catch (error) {
       console.error("[AIService] Error al conectar con el modelo local:", error);

@@ -16,6 +16,26 @@ Instrucciones obligatorias:
 `;
   }
 
+  protected getToolUseGuidelines(): string {
+    return `
+🛠️ ACCIONES DISPONIBLES EN EL LIENZO:
+Puedes modificar el espacio de trabajo. Para activar una herramienta, incluye en tu mensaje el bloque JSON EXACTO (sin modificar el esquema):
+
+{
+  "tool_use": {
+    "action": "create_block",
+    "params": { "type": "pseudocode", "content": "texto inicial", "x": 200, "y": 200 }
+  }
+}
+
+Acciones válidas:
+- "create_block": params -> { "type": "pseudocode" | "note" | "folder", "content"?: string }
+- "edit_block_content": params -> { "blockId": string, "content": string }
+- "link_blocks": params -> { "fromId": string, "toId": string }
+- "delete_block": params -> { "blockId": string }
+`;
+  }
+
   /**
    * Retorna el System Prompt final que se le pasará al LLM.
    */
@@ -42,7 +62,8 @@ Contexto actual del Workspace (Lienzo en tiempo real):
 - Implementación lógica actual: ${this.context.hasImplementation ? "Sí" : "No"}
 
 Tu objetivo es analizar el lienzo completo, proponer mejoras estructurales, guiar de forma proactiva y ayudar a conectar ideas complejas.
-${this.getCommonGuidelines()}`;
+${this.getCommonGuidelines()}
+${this.getToolUseGuidelines()}`;
   }
 }
 
@@ -79,6 +100,7 @@ Puedes:
 2. Ayudar a editar el pseudocódigo interno del bloque.
 3. Reformular la idea para mejorar el flujo.
 
-${this.getCommonGuidelines()}`;
+${this.getCommonGuidelines()}
+${this.getToolUseGuidelines()}`;
   }
 }
