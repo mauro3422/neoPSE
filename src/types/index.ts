@@ -20,6 +20,7 @@ export interface BlockDefinition {
 export interface BlockData {
   id: string;
   type: BlockType;
+  title?: string;
   position: Vector2;
   size?: { width: number; height: number };
   content: string;

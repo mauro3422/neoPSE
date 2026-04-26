@@ -2,6 +2,7 @@ import { GraphParser, ExecutionStep } from "./GraphParser";
 import { BlockType } from "../types";
 import { ChatContextState } from "./ChatContextState";
 import { blockManager } from "./BlockManager";
+import { Block } from "../components/Block";
 
 export interface AIPackage {
   globalNotes: string[];
@@ -33,15 +34,11 @@ export class ContextPacker {
       }
     });
 
-    const liveBlocks = blockManager.getBlocks().map((b: any) => {
+    const liveBlocks = blockManager.getBlocks().map((b: Block) => {
       const data = b.serialize();
-      const el = document.getElementById(data.id);
-      const title = el?.querySelector('.folder-label')?.textContent || 
-                    el?.querySelector('.block-title')?.textContent || 
-                    "Bloque";
       return {
         blockId: data.id,
-        title: title,
+        title: data.title,
         type: data.type,
         content: b.getContent() || data.content || "",
         position: data.position

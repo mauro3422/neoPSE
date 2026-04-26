@@ -1,3 +1,5 @@
+import { BlockType } from "../types";
+
 export enum AppEvents {
   BLOCK_MOVE = 'BLOCK_MOVE',
   VIEWPORT_CHANGE = 'VIEWPORT_CHANGE',
@@ -11,6 +13,15 @@ export enum AppEvents {
   MODULE_CREATED = 'MODULE_CREATED'
 }
 
+export interface BlockCreatedPayload {
+  type: BlockType;
+  position: { x: number; y: number };
+  id?: string;
+  content?: string;
+  size?: { width: number; height: number };
+  spawnOrigin?: { x: number; y: number };
+}
+
 /**
  * Mapa de tipos para los eventos.
  */
@@ -19,12 +30,12 @@ interface EventMap {
   [AppEvents.VIEWPORT_CHANGE]: void;
   [AppEvents.THEME_CHANGE]: string; // theme name
   [AppEvents.WORKSPACE_SAVE]: void;
-  [AppEvents.BLOCK_CREATED]: any; // block data object
+  [AppEvents.BLOCK_CREATED]: BlockCreatedPayload;
   [AppEvents.BLOCK_DELETED]: string; // blockId
   [AppEvents.REQUEST_DELETE]: void;
   [AppEvents.REQUEST_OPEN_FOLDER]: string; // folderId
-  [AppEvents.REQUEST_SUCTION]: { firstId: string, folderEl: HTMLElement, connectedData: any[] };
-  [AppEvents.MODULE_CREATED]: any;
+  [AppEvents.REQUEST_SUCTION]: { firstId: string, folderEl: HTMLElement, connectedData: { id: string, level: number }[] };
+  [AppEvents.MODULE_CREATED]: { filename: string, content: string };
 }
 
 type Callback<T> = (data: T) => void;

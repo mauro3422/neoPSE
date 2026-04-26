@@ -1,5 +1,5 @@
 import { workspaceState } from "./state/WorkspaceState";
-import { BlockType } from "../types";
+import { BlockType, BlockData } from "../types";
 import { blockManager } from "./BlockManager";
 
 export interface ExecutionStep {
@@ -14,12 +14,13 @@ export interface ExecutionStep {
  * Lector de Grafos: Convierte el mapa visual en un flujo secuencial.
  */
 export class GraphParser {
-  private static getAllBlocks(blocks: any[]): any[] {
-    let result: any[] = [];
+  private static getAllBlocks(blocks: BlockData[]): BlockData[] {
+    let result: BlockData[] = [];
     blocks.forEach(b => {
       result.push(b);
-      if (b.children && Array.isArray(b.children)) {
-        result = result.concat(this.getAllBlocks(b.children));
+      const folder = b as any;
+      if (folder.children && Array.isArray(folder.children)) {
+        result = result.concat(this.getAllBlocks(folder.children));
       }
     });
     return result;
@@ -35,9 +36,10 @@ export class GraphParser {
     const links = [...data.links];
 
     // Incluir links internos de carpetas
-    data.blocks.forEach((b: any) => {
-      if (b.childLinks && Array.isArray(b.childLinks)) {
-        links.push(...b.childLinks);
+    data.blocks.forEach((b) => {
+      const folder = b as any;
+      if (folder.childLinks && Array.isArray(folder.childLinks)) {
+        links.push(...folder.childLinks);
       }
     });
 
@@ -88,13 +90,9 @@ export class GraphParser {
     // 4. Mapear a Pasos de Ejecución
     return orderedIds.map(id => {
       const block = blocks.find(b => b.id === id)!;
-      const el = document.getElementById(id);
-      const title = el?.querySelector('.folder-label')?.textContent || 
-                    el?.querySelector('.block-title')?.textContent || 
-                    "Bloque";
       return {
         blockId: id,
-        title: title,
+        title: block.title || "Bloque",
         type: block.type,
         content: block.content || "",
         position: block.position

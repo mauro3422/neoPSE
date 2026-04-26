@@ -2,6 +2,8 @@ import { AssistantPrompt, InlinePrompt } from "../src/core/PromptBuilder";
 import { AIPackage } from "../src/core/ContextPacker";
 import * as fs from 'fs';
 import { SCENARIOS } from './scenarios';
+import { MetricDatabase } from '../src/ai/db/MetricDatabase';
+
 
 // Contexto mockeado para las pruebas
 const mockContext: AIPackage = {
@@ -41,6 +43,7 @@ class TestScenario {
     const systemPrompt = builder.buildSystemPrompt();
     const startTime = performance.now();
 
+    try {
       const port = (this.test as any).category === 'conversational' ? 8001 : 8000;
       const res = await fetch(`http://127.0.0.1:${port}/v1/chat/completions`, {
         method: "POST",
@@ -124,6 +127,35 @@ class BenchmarkEngine {
 
     this.printSummary(results);
     fs.writeFileSync(benchPath, JSON.stringify(results, null, 2));
+
+    // Guardar en SQLite
+    try {
+      const db = new MetricDatabase();
+      const total = results.length;
+      const passed = results.filter(r => r.success).length;
+      const avgTime = Math.round(results.reduce((acc, r) => acc + r.durationMs, 0) / (total || 1));
+
+      const snapshotId = db.saveSnapshot(total, passed, avgTime);
+
+      for (const res of results) {
+        db.saveTestResult({
+          snapshotId,
+          query: res.query,
+          category: res.category,
+          durationMs: res.durationMs,
+          isTool: res.isTool,
+          isPseint: res.isPseint,
+          responseText: res.response || "",
+          systemPrompt: res.systemPrompt || "",
+          freeMemGB: res.freeMemGB || 0,
+          totalMemGB: res.totalMemGB || 0,
+          serviceType: res.category === 'conversational' ? 'cpu' : 'gpu'
+        });
+      }
+      console.log(`\n💾 Métricas guardadas en SQLite (Snapshot ID: ${snapshotId})`);
+    } catch (e) {
+      console.error("❌ Error al guardar métricas en SQLite:", e);
+    }
   }
 
   private printSummary(results: any[]) {

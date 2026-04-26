@@ -38,7 +38,7 @@ export class PromptBuilder {
    */
   buildAnalysisPrompt(code, filePath) {
     return this.prompts.analysisTemplate
-      .replace('{filePath}', filePath)
-      .replace('{code}', code);
+      .replaceAll('{filePath}', filePath)
+      .replaceAll('{code}', code);
   }
 }

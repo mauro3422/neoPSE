@@ -2,6 +2,15 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo y en los registros detallados de versión.
 
+## [v0.8.0] - 2026-04-26
+### "LLM Robustness & Technical Debt"
+- **Desduplicación de Lógica**: Eliminación de `LayoutEngine.isOverlapping` redirigiendo colisiones a `GeometricEngine.intersectRects`.
+- **Tipado Estricto (No Any)**: Remoción de payloads genéricos en `EventEmitter.ts` y `AIToolbox.ts`.
+- **Robustez en IA Local**:
+  - Sanitización de JSON en `AIService.ts` para tolerar respuestas envueltas en markdown o texto extra.
+  - Expansión del Router Semántico (CPU/GPU) con más palabras clave para tareas pesadas.
+- **Auditoría del Sistema**: Creación de [neopse_system_analysis.md](file:///C:/Users/mauro/.gemini/antigravity/brain/f27dd15d-0b05-4758-9c26-1e4b387e4105/neopse_system_analysis.md) detectando falta de empaquetado de binarios en Tauri y herramientas muertas.
+
 ## [v0.7.0] - 2026-04-25
 ### "Stability & UX Hardening"
 - **Arquitectura de Managers (POO)**: Introducción de `BlockManager` para centralizar el ciclo de vida de componentes y desacoplar el core.

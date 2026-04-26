@@ -4,7 +4,7 @@ import { AssistantBlock } from "./components/AssistantBlock";
 import { ViewportController } from "./core/viewport/ViewportController";
 import { relationshipManager } from "./core/RelationshipManager";
 import { BlockFactory } from "./core/BlockFactory";
-import { eventBus, AppEvents } from "./core/EventEmitter";
+import { eventBus, AppEvents, BlockCreatedPayload } from "./core/EventEmitter";
 import { Block } from "./components/Block";
 import { workspaceState } from "./core/state/WorkspaceState";
 import { BlockType } from "./types";
@@ -45,7 +45,7 @@ class Workspace {
       this.setupRecentering();
       this.listenToEvents();
       
-      console.log('NeoPSE Workspace 0.6.0 (Hardened) Initialized');
+      console.log('NeoPSE Workspace 0.8.0 (Hardened) Initialized');
     } catch (error) {
       console.error('Failed to initialize Workspace:', error);
     }
@@ -74,12 +74,12 @@ class Workspace {
     eventBus.on(AppEvents.WORKSPACE_SAVE, () => workspaceState.saveToStorage());
 
     // Escuchar creación de bloques (para White Hole Burst)
-    eventBus.on(AppEvents.BLOCK_CREATED, (data: any) => {
+    eventBus.on(AppEvents.BLOCK_CREATED, (data: BlockCreatedPayload) => {
       const { type, position, id, content, size, spawnOrigin } = data;
       console.log(`[App] BLOCK_CREATED recibido: ${id} (${type})`, { position, size, hasOrigin: !!spawnOrigin });
       
       if (id && !workspaceState.getData().blocks.find(b => b.id === id)) {
-        workspaceState.addBlock({ id, type, position, content, size });
+        workspaceState.addBlock({ id: id as string, type, position, content: content || '', size });
       }
 
       const instance = this.spawnBlockInstance(type, position.x, position.y, id, content, size, !!spawnOrigin);

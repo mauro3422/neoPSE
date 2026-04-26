@@ -1,5 +1,5 @@
 import { Vector2 } from "./Config";
-import { BlockType } from "../types";
+import { BlockType, BlockData } from "../types";
 
 /**
  * Contrato estándar para cualquier controlador de bloque en NeoPSE.
@@ -18,6 +18,6 @@ export interface IBlockController {
   onFocus?(): void;
   
   // Estado
-  serialize(): any;
-  deserialize(data: any): void;
+  serialize(): BlockData;
+  deserialize(data: BlockData): void;
 }

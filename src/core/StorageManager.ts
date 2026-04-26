@@ -1,7 +1,7 @@
 export class StorageManager {
   private static PREFIX = "neopse_";
 
-  public static save(key: string, data: any) {
+  public static save<T>(key: string, data: T) {
     try {
       const json = JSON.stringify(data);
       localStorage.setItem(this.PREFIX + key, json);

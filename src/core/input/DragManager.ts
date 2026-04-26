@@ -6,6 +6,8 @@ import { workspaceState } from "../state/WorkspaceState";
 import { SelectionManager } from "../SelectionManager";
 import { chainPhysicsEngine } from "../ChainPhysicsEngine";
 import { eventBus, AppEvents } from "../EventEmitter";
+import { FolderBlock } from "../../components/SpecializedBlocks";
+import { BlockData } from "../../types";
 
 export interface Draggable {
   onDragStart(x: number, y: number): void;
@@ -82,9 +84,9 @@ export class DragManager {
 
     const folderRect = GeometricEngine.getWorldRect(folder);
     const destination = { x: folderRect.cx, y: folderRect.cy };
-    const folderInstance = blockManager.getBlocks().find(b => b.getElement() === folder) as any;
+    const folderInstance = blockManager.getBlocks().find(b => b.getElement() === folder) as unknown as FolderBlock;
 
-    const chainData: { id: string, element: HTMLElement, mass: number, serializeData: any }[] = [];
+    const chainData: { id: string, element: HTMLElement, mass: number, serializeData: BlockData }[] = [];
 
     allConnectedData.forEach(({ id }) => {
       const blockEl = document.getElementById(id);

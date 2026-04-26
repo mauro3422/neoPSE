@@ -253,7 +253,7 @@ export class RelationshipManager {
     link.pathElement.setAttribute("d", this.calculateBezierPath(start, end, off));
   }
 
-  private applySideCurvature(side: AnchorSide, point: any, curvature: number) {
+  private applySideCurvature(side: AnchorSide, point: { x: number, y: number }, curvature: number) {
     if (side === 'right') point.x += curvature;
     else if (side === 'left') point.x -= curvature;
     else if (side === 'top') point.y -= curvature;

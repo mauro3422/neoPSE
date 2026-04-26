@@ -1,4 +1,5 @@
 import { eventBus, AppEvents } from "./EventEmitter";
+import { blockManager } from "./BlockManager";
 
 /**
  * Estado que gestiona los bloques adjuntos al chat de IA.
@@ -81,10 +82,8 @@ export class ChatContextState {
       chip.style.gap = '6px';
       chip.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
 
-      const el = document.getElementById(id);
-      const label = el?.querySelector('.folder-label')?.textContent || 
-                    el?.querySelector('.block-title')?.textContent || 
-                    id.substring(0, 8);
+      const block = blockManager.getBlock(id);
+      const label = block ? block.getTitle() : id.substring(0, 8);
 
       chip.innerHTML = `<span>${label}</span><span style="cursor:pointer; opacity: 0.8; font-weight: bold;">✕</span>`;
       

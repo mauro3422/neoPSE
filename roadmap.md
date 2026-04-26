@@ -136,6 +136,23 @@ Entregables:
 - sugerencias
 - asistencia sobre pseudocodigo
 
+## Fase 6.1: Métricas, Desacoplamiento y Modularidad (Iteraciones Actuales)
+
+Objetivo:
+
+- Robustecer la IA con persistencia de datos y separación de roles.
+
+Entregables (Completados):
+- **Base de Datos de Métricas (SQLite)**: Registro de latencia, éxito, RAM y uso de herramientas por test.
+- **Desacoplamiento de Prompts**: Migración de plantillas a `prompts-ide.json`.
+- **Separación de Roles**:
+  - *Global Orchestrator*: Filosofía 'Divide y Vencerás', modularidad y carpetas.
+  - *Inline Copilot*: Optimización local y micro-tutoría.
+
+Próximos Pasos (En cola):
+- **Renombrado Dinámico**: Permitir que el modelo asigne títulos descriptivos a los bloques basados en su lógica.
+- **Agente Background (Sintetizador)**: Demonio en segundo plano que analiza el canvas constantemente para sintetizar ideas o proponer pseudocódigo.
+
 ## Fase 7: Refinamiento
 
 Objetivo:

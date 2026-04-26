@@ -1,14 +1,8 @@
-import { BlockType } from "../types";
+import { BlockType, BlockDefinition as BaseBlockDefinition } from "../types";
 import type { Block } from "../components/Block";
 
-interface BlockDefinition {
-  type: BlockType;
-  title: string;
-  className: string;
-  structureHtml: string; // El esqueleto físico del contenido
+interface BlockDefinition extends BaseBlockDefinition {
   controller: new (selector: string | HTMLElement, skipAnimation?: boolean) => Block;
-  useHeader?: boolean;
-  useResizer?: boolean;
   mass: number;
 }
 

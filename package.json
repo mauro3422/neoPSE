@@ -10,14 +10,17 @@
     "dev:ai:cpu": "src\\ai\\server\\llama-server.exe --model src\\ai\\models\\LFM2.5-1.2B-Instruct-Q8_0.gguf --port 8001 --host 127.0.0.1 --n-gpu-layers 0 -t 4 --ctx-size 16384 --parallel 1 -cb --temp 0.2 --cache-type-k q8_0 --cache-type-v q8_0 --chat-template chatml",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "test:ai": "npx tsx scripts/debugger-llm.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2"
+    "@tauri-apps/plugin-opener": "^2",
+    "better-sqlite3": "^12.9.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.6.0",
     "concurrently": "^9.2.1",
     "typescript": "~5.6.2",

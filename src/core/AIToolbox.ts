@@ -2,12 +2,13 @@ import { eventBus, AppEvents } from "./EventEmitter";
 import { blockManager } from "./BlockManager";
 import { relationshipManager } from "./RelationshipManager";
 import { BlockType } from "../types";
+import { Block } from "../components/Block";
 
 export interface AITool {
   name: string;
   description: string;
-  parameters: any;
-  execute: (args: any) => void;
+  parameters: Record<string, any>;
+  execute: (args: Record<string, any>) => void;
 }
 
 /**
@@ -17,7 +18,7 @@ export class AIToolbox {
   private static tools: Map<string, AITool> = new Map();
 
   private static resolveBlockId(id: string): string {
-    const blocks = blockManager.getBlocks().map((b: any) => b.serialize());
+    const blocks = blockManager.getBlocks().map((b: Block) => b.serialize());
     
     // 1. Si el ID es real, retornarlo
     if (blocks.find(b => b.id === id)) return id;
@@ -70,7 +71,7 @@ export class AIToolbox {
         },
         required: ["type"]
       },
-      execute: (args: any) => {
+      execute: (args: Record<string, any>) => {
         let type = args.type as BlockType;
         if (!type || !['pseudocode', 'note', 'folder'].includes(type)) {
           const looksLikeCode = args.content && (args.content.includes('=') || args.content.includes('si ') || args.content.includes('para '));
@@ -92,21 +93,24 @@ export class AIToolbox {
 
     this.registerTool({
       name: "edit_block_content",
-      description: "Edita el texto o pseudocódigo interno de un bloque existente.",
+      description: "Edita el texto, título o pseudocódigo interno de un bloque existente.",
       parameters: {
         type: "object",
         properties: {
           blockId: { type: "string" },
-          content: { type: "string" }
+          content: { type: "string" },
+          title: { type: "string", description: "Opcional. Nuevo título descriptivo para el bloque." }
         },
         required: ["blockId", "content"]
       },
-      execute: (args: any) => {
+      execute: (args: Record<string, any>) => {
         const realId = this.resolveBlockId(args.blockId);
-        const { content } = args;
+        const { content, title } = args;
         const block = blockManager.getBlocks().find(b => b.serialize().id === realId);
         if (block) {
           const el = document.getElementById(realId);
+          
+          // Actualizar contenido
           const editor = el?.querySelector('.code-area') || el?.querySelector('.note-input');
           if (editor) {
             editor.textContent = content;
@@ -118,6 +122,14 @@ export class AIToolbox {
           if (typeof block.syncState === 'function') {
             // @ts-ignore
             block.syncState(content);
+          }
+
+          // Actualizar título (opcional)
+          if (title) {
+            const titleEl = el?.querySelector('.block-title') || el?.querySelector('.folder-label');
+            if (titleEl) {
+              titleEl.textContent = title;
+            }
           }
         }
       }
@@ -134,7 +146,7 @@ export class AIToolbox {
         },
         required: ["fromId", "toId"]
       },
-      execute: (args: any) => {
+      execute: (args: Record<string, any>) => {
         const fromRealId = this.resolveBlockId(args.fromId);
         const toRealId = this.resolveBlockId(args.toId);
         relationshipManager.addLink(fromRealId, toRealId);
@@ -151,7 +163,7 @@ export class AIToolbox {
         },
         required: ["blockId"]
       },
-      execute: (args: any) => {
+      execute: (args: Record<string, any>) => {
         const realId = this.resolveBlockId(args.blockId);
         blockManager.deleteBlock(realId);
       }
@@ -186,9 +198,9 @@ export class AIToolbox {
         },
         required: ["filename", "content"]
       },
-      execute: (args: any) => {
+      execute: (args: Record<string, any>) => {
         console.log(`[AIToolbox] Guardando archivo modular: ${args.filename}`);
-        eventBus.emit(AppEvents.MODULE_CREATED, args);
+        eventBus.emit(AppEvents.MODULE_CREATED, args as { filename: string, content: string });
       }
     });
   }
@@ -198,7 +210,7 @@ export class AIToolbox {
   }
 
   public static getToolDefinitions() {
-    const defs: any[] = [];
+    const defs: { type: string, function: { name: string, description: string, parameters: Record<string, any> } }[] = [];
     this.tools.forEach(t => {
       defs.push({
         type: "function",
@@ -212,7 +224,7 @@ export class AIToolbox {
     return defs;
   }
 
-  public static executeTool(name: string, args: any): boolean {
+  public static executeTool(name: string, args: Record<string, any>): boolean {
     const tool = this.tools.get(name);
     if (tool) {
       try {

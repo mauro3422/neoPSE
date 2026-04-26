@@ -4,7 +4,7 @@ export interface AIResponse {
   message: string;
   toolCalls?: {
     name: string;
-    args: any;
+    args: Record<string, any>;
   }[];
 }
 
@@ -35,7 +35,7 @@ export class AIService {
     const systemPrompt = builder.buildSystemPrompt();
     
     // ROUTER SEMÁNTICO INTELIGENTE (CPU/GPU)
-    const isHeavy = prompt.toLowerCase().match(/(crea|elimina|genera|vincula|link|haz|modifica|hazme|codigo|pseint)/i);
+    const isHeavy = prompt.toLowerCase().match(/(crea|elimina|genera|vincula|link|haz|modifica|hazme|codigo|pseint|escribe|programa|algoritmo|funcion|proceso|matriz|vector|arreglo|estructura|optimiza|refactoriza|corrige)/i);
     const targetPort = isHeavy ? 8000 : 8001;
     const activeEndpoint = `http://127.0.0.1:${targetPort}/v1/chat/completions`;
 
@@ -71,7 +71,18 @@ export class AIService {
       let toolPayload: string | null = null;
 
       try {
-        const parsed = JSON.parse(rawContent);
+        let jsonStr = rawContent;
+        // Quitar bloques markdown ```json ... ```
+        jsonStr = jsonStr.replace(/```json\s*/gi, '').replace(/```\s*$/g, '').trim();
+        
+        // Buscar primer { y último }
+        const firstBrace = jsonStr.indexOf('{');
+        const lastBrace = jsonStr.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
+        }
+
+        const parsed = JSON.parse(jsonStr);
         if (parsed.message) {
           finalMessage = parsed.message;
         }

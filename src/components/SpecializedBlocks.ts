@@ -5,7 +5,7 @@ import { AnimationManager } from "../core/AnimationManager";
 import { eventBus, AppEvents } from "../core/EventEmitter";
 import { GeometricEngine } from "../core/GeometricEngine";
 import { relationshipManager } from "../core/RelationshipManager";
-import { BlockType } from "../types";
+import { BlockType, BlockData, LinkData } from "../types";
 
 export class PseudocodeBlock extends Block {
   constructor(selector: string | HTMLElement, skipAnimation: boolean = false) {
@@ -71,8 +71,8 @@ export class NoteBlock extends Block {
 }
 
 export class FolderBlock extends Block {
-  private children: any[] = [];
-  private childLinks: any[] = [];
+  private children: BlockData[] = [];
+  private childLinks: LinkData[] = [];
   private associatedBlockIds: string[] = [];
 
   constructor(selector: string | HTMLElement, skipAnimation: boolean = false) {
@@ -162,7 +162,7 @@ export class FolderBlock extends Block {
   /**
    * Almacena un bloque succionado (Guardando su posición RELATIVA a la carpeta).
    */
-  public addSwallowedBlock(data: any) {
+  public addSwallowedBlock(data: BlockData) {
     const folderPos = GeometricEngine.getElementPos(this.element);
     
     // Calculamos el offset relativo
@@ -183,7 +183,7 @@ export class FolderBlock extends Block {
     }
   }
 
-  public addSwallowedLink(link: any) {
+  public addSwallowedLink(link: LinkData) {
     const exists = this.childLinks.some(l => l.fromId === link.fromId && l.toId === link.toId);
     if (!exists) {
       this.childLinks.push(link);
@@ -271,7 +271,7 @@ export class FolderBlock extends Block {
     return this.element.querySelector('.folder-label')?.textContent || 'Módulo';
   }
 
-  public serialize(): any {
+  public serialize() {
     const base = super.serialize();
     return {
       ...base,

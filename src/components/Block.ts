@@ -137,6 +137,7 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
 
     this.element.addEventListener('contextmenu', async (e) => {
       e.preventDefault();
+      e.stopPropagation();
       const { ContextMenuManager } = await import("../core/ContextMenuManager");
       ContextMenuManager.show(this.id, e.clientX, e.clientY, this.type === 'folder');
     });
@@ -189,11 +190,18 @@ export abstract class Block extends UIComponent implements Draggable, Resizable 
 
   public abstract getContent(): string;
 
-  public serialize(): any {
+  public getTitle(): string {
+    return this.element.querySelector('.folder-label')?.textContent || 
+           this.element.querySelector('.block-title')?.textContent || 
+           "Bloque";
+  }
+
+  public serialize() {
     const pos = GeometricEngine.getElementPos(this.element);
     return {
       id: this.id,
       type: this.type,
+      title: this.getTitle(),
       position: pos,
       size: { width: this.element.offsetWidth, height: this.element.offsetHeight },
       content: this.getContent()

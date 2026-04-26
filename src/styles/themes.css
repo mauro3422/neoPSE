@@ -34,3 +34,18 @@
   --block-header-bg: rgba(0, 0, 0, 0.03);
   --code-color: #5e81ac;
 }
+
+/* Crimson Theme (Dark/Ruby) */
+[data-theme="crimson"] {
+  --bg-color: #12080a;
+  --board-bg: #1a0c0e;
+  --grid-color: rgba(225, 29, 72, 0.05);
+  --block-bg: rgba(255, 255, 255, 0.05);
+  --block-border: rgba(225, 29, 72, 0.2);
+  --accent-color: #e11d48;
+  --text-main: #fecdd3;
+  --text-muted: #fda4af;
+  --header-bg: rgba(0, 0, 0, 0.3);
+  --block-header-bg: rgba(225, 29, 72, 0.1);
+  --code-color: #fb7185;
+}
