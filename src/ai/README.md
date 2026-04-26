@@ -257,8 +257,9 @@ taskkill /F /PID <pid>
 ## Performance Benchmarks
 
 Tested on:
-- **GPU**: RTX 3060 (12GB VRAM)
-- **CPU**: Ryzen 7 5800X (8 cores)
+- **GPU**: 8GB VRAM
+- **CPU**: Ryzen 5 5600G (Integrated Graphics offloaded)
+- **RAM**: 16GB
 - **Model**: LFM2.5-1.2B-Q8_0
 
 | Scenario | GPU (ms) | CPU (ms) |
@@ -267,7 +268,7 @@ Tested on:
 | 10 files (parallel) | 1000-2000 | 5000-8000 |
 | 50 files (batch) | 8000-12000 | 30000-50000 |
 
-**Conclusion**: GPU is 3-5x faster. Use CPU only if GPU unavailable.
+**Conclusion**: El procesamiento por GPU es de 3 a 5 veces más rápido. Se recomienda implementar una **Estrategia Híbrida**: asignar agentes conversacionales ligeros (Tutor) a la CPU (usando hilos optimizados) y reservar la GPU (8GB VRAM) exclusivamente para el procesamiento asíncrono pesado del Agente Arquitecto.
 
 ## Architecture Details
 

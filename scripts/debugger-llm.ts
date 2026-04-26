@@ -41,8 +41,8 @@ class TestScenario {
     const systemPrompt = builder.buildSystemPrompt();
     const startTime = performance.now();
 
-    try {
-      const res = await fetch("http://127.0.0.1:8000/v1/chat/completions", {
+      const port = (this.test as any).category === 'conversational' ? 8001 : 8000;
+      const res = await fetch(`http://127.0.0.1:${port}/v1/chat/completions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -141,6 +141,8 @@ class BenchmarkEngine {
     console.log(`🏆 Cobertura Global: ${passed}/${total} exitosos.`);
     console.log(`⏱️ Tiempo Promedio: ${avgTime}ms`);
     console.log(`🖥️ RAM Libre Promedio: ${avgRAM}GB / ${results[0]?.totalMemGB || 0}GB`);
+    console.log(`🤖 Capacidad de Agentes GPU (Puerto 8000): 2`);
+    console.log(`🤖 Capacidad de Agentes CPU (Puerto 8001): 1`);
     console.log(`🛠️ Uso de Herramientas: ${toolRate}%`);
     console.log(`🧠 Cumplimiento PSeInt: ${pseIntRate}%`);
 
