@@ -75,7 +75,8 @@ class TestScenario {
         freeMemGB: freeMem,
         totalMemGB: totalMem,
         success: content.length > 10,
-        response: content
+        response: content,
+        systemPrompt: systemPrompt
       };
     } catch (e) {
       return {

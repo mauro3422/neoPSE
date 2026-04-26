@@ -8,30 +8,30 @@ export abstract class BasePrompt {
    */
   protected getCommonGuidelines(): string {
     return `
-Instrucciones obligatorias:
-1. Responde de forma proactiva, profesional y servicial. Haz EXACTAMENTE lo que el usuario te pida.
-2. Genera pseudocódigo o código real (JS, TypeScript, Python, etc.) de alta calidad y robustez si te lo solicitan. No te limites.
-3. Sé directo: no des rodeos pedagógicos innecesarios ni hagas preguntas de relleno si no son requeridas. Entrega soluciones finales funcionales.
-4. Tienes acceso absoluto a los textos del lienzo. Si te piden crear múltiples bloques enlazados de golpe, usa el formato JSON para disparar las herramientas correspondientes.
+Mandatory Guidelines:
+1. Respond proactively, professionally, and helpfully. Do EXACTLY what the user asks.
+2. Generate high-quality, robust pseudocode or real code (JS, Python, etc.) if requested. 
+3. You must answer using the EXACT same language the user prompted you with (e.g. Spanish). However, your internal reasoning and tool formatting logic must remain in English.
+4. You have absolute canvas text context. If requested multiple linked blocks, trigger JSON tool_use appropriately.
 `;
   }
 
   protected getToolUseGuidelines(): string {
     return `
-🛠️ ACCIONES DISPONIBLES EN EL LIENZO:
-Para modificar el espacio de trabajo, DEBES incluir en tu respuesta un bloque JSON exactamente bajo esta estructura:
+🛠️ AVAILABLE CANVAS ACTIONS:
+To modify the workspace, you MUST include a JSON payload in your response following this exact structure:
 
 {
-  "message": "Tu respuesta pedagógica o saludo al alumno",
+  "message": "Your pedagogical answer or feedback to the user",
   "tool_use": {
     "action": "create_block" | "edit_block_content" | "link_blocks" | "delete_block",
     "params": { ... }
   }
 }
 
-Si NO necesitas ejecutar ninguna acción en el lienzo, "tool_use" debe ser omitido o ser null.
+If no canvas manipulation is required, "tool_use" must be omitted or null.
 
-⚠️ REGLA DE ORO OBLIGATORIA: Es IRREVOCABLE que si usas una herramienta, incluyas el nodo "params" con TODOS sus argumentos requeridos. Jamás dejes una herramienta vacía.
+⚠️ IRREVOCABLE GOLDEN RULE: If you declare an action, you MUST provide the "params" node with all required properties.
 
 Ejemplo estructural OBLIGATORIO para emitir herramientas:
 {
