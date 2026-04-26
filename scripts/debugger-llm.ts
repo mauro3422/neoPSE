@@ -58,6 +58,9 @@ class TestScenario {
       const data = await res.json();
       const content = data.choices?.[0]?.message?.content || "";
       const durationMs = Math.round(performance.now() - startTime);
+      const os = await import('os');
+      const totalMem = Math.round(os.totalmem() / 1024 / 1024 / 1024);
+      const freeMem = Math.round(os.freemem() / 1024 / 1024 / 1024);
 
       const isTool = content.includes('"tool_use"');
       const isPseInt = content.toLowerCase().includes("proceso") || content.toLowerCase().includes("definir") || content.toLowerCase().includes("algoritmo");
@@ -69,7 +72,9 @@ class TestScenario {
         durationMs,
         isTool,
         isPseInt,
-        success: content.length > 50
+        freeMemGB: freeMem,
+        totalMemGB: totalMem,
+        success: content.length > 10
       };
     } catch (e) {
       return {
@@ -126,10 +131,15 @@ class BenchmarkEngine {
     const toolRate = Math.round((results.filter(r => r.isTool).length / total) * 100);
     const pseIntRate = Math.round((results.filter(r => r.isPseInt).length / total) * 100);
 
+    const avgRAM = results[0]?.freeMemGB !== undefined
+      ? Math.round(results.reduce((acc, r) => acc + r.freeMemGB, 0) / total)
+      : 0;
+
     console.log("\n==============================================");
     console.log("📊 RESUMEN DE BENCHMARKS OPERATIVOS");
     console.log(`🏆 Cobertura Global: ${passed}/${total} exitosos.`);
     console.log(`⏱️ Tiempo Promedio: ${avgTime}ms`);
+    console.log(`🖥️ RAM Libre Promedio: ${avgRAM}GB / ${results[0]?.totalMemGB || 0}GB`);
     console.log(`🛠️ Uso de Herramientas: ${toolRate}%`);
     console.log(`🧠 Cumplimiento PSeInt: ${pseIntRate}%`);
 

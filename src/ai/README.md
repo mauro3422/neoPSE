@@ -1,4 +1,4 @@
-﻿# AI Integration - Local LLM for Semantic Analysis
+# AI Integration - Local LLM for Semantic Analysis
 
 This directory contains the AI integration for OmnySys, enabling deep semantic analysis using local LLMs.
 
@@ -283,7 +283,7 @@ Tested on:
 1. **Small but capable**: 1.2B params is perfect for code analysis
 2. **Fast**: Inference in 200-500ms on modest GPU
 3. **Instruct-tuned**: Follows JSON output format reliably
-4. **Q8_0 quantization**: High quality with reasonable size
+4. **Resilient Context (32K Window)**: Built on Liquid Neural Network (LNN) hybrid architectures combining convolutions and grouped attention. It maintains extreme integrity across long-term sequences without suffering typical Transformer scale degradation.
 
 ### Continuous Batching (`-cb`)
 

@@ -5,6 +5,24 @@ export interface TestCase {
 }
 
 export const SCENARIOS: TestCase[] = [
+  // GRUPO A: Conversacional Puro (1-15)
+  { q: "Hola, ¿cómo estás?", type: "assistant", category: "conversational" },
+  { q: "¿Qué es un bucle?", type: "assistant", category: "conversational" },
+  { q: "¿Cuál es la diferencia entre un bucle Mientras y un bucle Para?", type: "assistant", category: "conversational" },
+  { q: "No entiendo nada de programación, ¿me ayudas?", type: "assistant", category: "conversational" },
+  { q: "¿De qué color es el cielo?", type: "assistant", category: "conversational" },
+  { q: "Quiero una metáfora para entender qué es una Pila (Stack).", type: "assistant", category: "conversational" },
+  { q: "¿Por qué usamos pseudocódigo en lugar de código real?", type: "assistant", category: "conversational" },
+  { q: "¿Qué lenguajes puedo exportar desde aquí?", type: "assistant", category: "conversational" },
+  { q: "Explícame qué significa la complejidad algorítmica O(N).", type: "assistant", category: "conversational" },
+  { q: "¿Para qué sirve la palabra clave Definir?", type: "assistant", category: "conversational" },
+  { q: "Dame consejos sobre cómo depurar código manualmente.", type: "assistant", category: "conversational" },
+  { q: "¿Te gusta la música?", type: "assistant", category: "conversational" },
+  { q: "Hazme un resumen de lo que llevo aprendido.", type: "assistant", category: "conversational" },
+  { q: "¡Adiós, gracias por todo!", type: "assistant", category: "conversational" },
+  { q: "¿Qué es una función recursiva?", type: "assistant", category: "conversational" },
+
+  // GRUPO B: Lógica y Lienzo (16-30)
   { q: "Crea un bloque de pseudocódigo que calcule el área de un círculo pidiéndole el radio al usuario.", type: "assistant", category: "logic" },
   { q: "Modifica el bloque node-1 para cambiar el valor inicial a 100.", type: "inline", category: "syntax" },
   { q: "Conecta el bloque node-1 con el bloque node-2 mediante un enlace directo.", type: "assistant", category: "logic" },
@@ -20,19 +38,28 @@ export const SCENARIOS: TestCase[] = [
   { q: "Modifica el bloque node-1 para agregar una instrucción que imprima 'Fin del Proceso'.", type: "inline", category: "syntax" },
   { q: "Conecta el bloque node-1 con node-2 para guiar la ejecución lógica secuencial.", type: "assistant", category: "logic" },
   { q: "Crea una carpeta llamada 'Estructuras de Datos' para organizar los módulos.", type: "assistant", category: "logic" },
-  { q: "Escribe el algoritmo de la Criba de Eratóstenes para encontrar números primos hasta el 200.", type: "assistant", category: "logic" },
-  { q: "Calcula el Máximo Común Divisor (MCD) de dos números usando el algoritmo de Euclides.", type: "assistant", category: "logic" },
-  { q: "Desarrolla la lógica para validar si una tarjeta de crédito es válida usando el Algoritmo de Luhn.", type: "assistant", category: "logic" },
-  { q: "Diseña un conversor de moneda de Pesos a Dólares pidiendo la tasa de cambio actual.", type: "assistant", category: "syntax" },
-  { q: "Escribe un algoritmo que invierta una cadena de texto ingresada por el usuario.", type: "assistant", category: "syntax" },
-  { q: "Implementa una pila (Stack) utilizando un arreglo con operaciones Apilar y Desapilar.", type: "assistant", category: "logic" },
-  { q: "Calcula el sueldo neto de un empleado restando los impuestos de ley según su rango.", type: "assistant", category: "logic" },
-  { q: "Agrega una nota recordando que los arreglos en PSeInt por defecto son base 1.", type: "assistant", category: "conversational" },
-  { q: "Genera la tabla de multiplicar de un número N del 1 al 12.", type: "assistant", category: "syntax" },
-  { q: "Escribe un algoritmo que determine la calificación final en base a 3 exámenes parciales.", type: "assistant", category: "syntax" },
-  { q: "Encuentra el elemento mayor y el menor dentro de un arreglo desordenado.", type: "assistant", category: "logic" },
-  { q: "Crea un bloque que simule el juego de adivinar un número aleatorio entre 1 y 100.", type: "assistant", category: "logic" },
-  { q: "Determina si un número entero ingresado es par o impar usando el operador Mod.", type: "assistant", category: "syntax" },
-  { q: "Escribe el pseudocódigo para resolver una ecuación de segundo grado (Fórmula general).", type: "assistant", category: "logic" },
-  { q: "Construye una solución para verificar si una matriz dada es simétrica.", type: "assistant", category: "logic" }
+
+  // GRUPO C: Refactorización Dinámica (31-40)
+  { q: "Optimiza un bucle Para existente en el lienzo.", type: "inline", category: "syntax" },
+  { q: "Cambia los nombres de variables en el nodo-1.", type: "inline", category: "syntax" },
+  { q: "Agrega validación de entradas a un algoritmo existente.", type: "assistant", category: "logic" },
+  { q: "Convierte un bucle Mientras a un bucle Para.", type: "inline", category: "syntax" },
+  { q: "Ubica visualmente un bloque flotante.", type: "assistant", category: "conversational" },
+  { q: "Extrae una porción de código a un nuevo bloque modular.", type: "assistant", category: "logic" },
+  { q: "Fusiona dos bloques lógicos en uno solo.", type: "assistant", category: "logic" },
+  { q: "Agrega comentarios explicativos dentro del bloque node-1.", type: "inline", category: "conversational" },
+  { q: "Cambia el tipo de bloque de nota a pseudocódigo.", type: "inline", category: "syntax" },
+  { q: "Reajusta los enlaces lógicos de ejecución de los bloques.", type: "assistant", category: "logic" },
+
+  // GRUPO D: Casos Borde y Errores (41-50)
+  { q: "Corrige este código roto: Para i=1 Hasta 10 Hacer", type: "inline", category: "syntax" },
+  { q: "Calcula el infinito mediante un algoritmo.", type: "assistant", category: "conversational" },
+  { q: "Tengo un bucle infinito en mi código, ayúdame a encontrarlo.", type: "assistant", category: "conversational" },
+  { q: "Se me olvidó cerrar una comilla en este texto.", type: "inline", category: "syntax" },
+  { q: "¿Qué pasa si divido un número por cero en PSeInt?", type: "assistant", category: "conversational" },
+  { q: "Haz algo abstracto con el nodo-1.", type: "inline", category: "conversational" },
+  { q: "Quiero borrar un bloque que ya eliminé antes del lienzo.", type: "assistant", category: "conversational" },
+  { q: "Estoy intentando sumar texto y un número por error.", type: "inline", category: "syntax" },
+  { q: "Cancela la orden de generación de bloques actual.", type: "assistant", category: "conversational" },
+  { q: "Dame la solución directa del examen sin explicarme nada.", type: "assistant", category: "conversational" }
 ];
