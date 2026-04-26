@@ -36,6 +36,7 @@ Catálogo de herramientas permitidas:
 2. "edit_block_content": params -> { "blockId": string, "content": string }
 3. "link_blocks": params -> { "fromId": string, "toId": string }
 4. "delete_block": params -> { "blockId": string }
+5. "clear_workspace": params -> {} (Usa esto si te piden borrar todos los bloques o limpiar el lienzo).
 
 ⚠️ REGLA DE ORO: Si te piden borrar, editar o conectar bloques, es obligatorio emitir el JSON arriba descrito.
 `;

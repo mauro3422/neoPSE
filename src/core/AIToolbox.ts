@@ -71,10 +71,14 @@ export class AIToolbox {
         required: ["type"]
       },
       execute: (args: any) => {
-        const type = args.type as BlockType;
+        let type = args.type as BlockType;
+        if (!type || !['pseudocode', 'note', 'folder'].includes(type)) {
+          const looksLikeCode = args.content && (args.content.includes('=') || args.content.includes('si ') || args.content.includes('para '));
+          type = looksLikeCode ? 'pseudocode' as BlockType : 'note' as BlockType;
+        }
         const content = args.content || "";
-        const x = typeof args.x === 'number' ? args.x : 200;
-        const y = typeof args.y === 'number' ? args.y : 200;
+        const x = typeof args.x === 'number' ? args.x : Math.floor(Math.random() * 300) + 150;
+        const y = typeof args.y === 'number' ? args.y : Math.floor(Math.random() * 300) + 150;
         const id = `${type}_${Math.random().toString(36).substr(2, 9)}`;
         
         eventBus.emit(AppEvents.BLOCK_CREATED, {
@@ -152,6 +156,18 @@ export class AIToolbox {
         blockManager.deleteBlock(realId);
       }
     });
+
+    this.registerTool({
+      name: "clear_workspace",
+      description: "Elimina TODOS los bloques del lienzo para dejarlo completamente vacío.",
+      parameters: {
+        type: "object",
+        properties: {}
+      },
+      execute: () => {
+        blockManager.getBlocks().forEach(b => blockManager.deleteBlock(b.serialize().id));
+      }
+    });
   }
 
   public static registerTool(tool: AITool) {
@@ -187,18 +203,22 @@ export class AIToolbox {
   }
 
   public static parseAndExecute(response: string): string {
-    const regex = /\{\s*"tool_use"\s*:\s*\{\s*"action"\s*:\s*"([^"]+)"\s*,\s*"params"\s*:\s*(\{[\s\S]*?\})\s*\}\s*\}/;
-    const match = response.match(regex);
-    if (match) {
+    const regex = /\{\s*"tool_use"\s*:\s*\{\s*"action"\s*:\s*"([^"]+)"\s*,\s*"params"\s*:\s*(\{[\s\S]*?\})\s*\}\s*\}/g;
+    let modifiedResponse = response;
+    let match;
+    
+    while ((match = regex.exec(response)) !== null) {
       const action = match[1];
       try {
         const params = JSON.parse(match[2]);
         const success = this.executeTool(action, params);
         if (success) {
-          return response.replace(match[0], `\n⚡ *[Herramienta Ejecutada: ${action}]*`);
+          modifiedResponse = modifiedResponse.replace(match[0], `\n⚡ *[Acción ejecutada correctamente: ${action}]*`);
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error("[AIToolbox] Error parseando parámetros JSON:", e);
+      }
     }
-    return response;
+    return modifiedResponse;
   }
 }

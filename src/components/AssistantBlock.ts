@@ -8,6 +8,7 @@ interface ChatMessage {
 export class AssistantBlock extends UIComponent {
   private chatInput: HTMLInputElement | null;
   private messageArea: HTMLElement | null;
+  private history: ChatMessage[] = [];
 
   constructor(selector: string | HTMLElement) {
     super(selector);
@@ -24,23 +25,18 @@ export class AssistantBlock extends UIComponent {
         const text = this.chatInput.value;
         this.addMessage('user', text);
         this.chatInput.value = '';
-        const historyStr = this.serializeChat();
-        let history: { role: 'user' | 'ai', content: string }[] = [];
-        try {
-          const parsed: ChatMessage[] = JSON.parse(historyStr || '[]');
-          history = parsed.map(p => ({ role: p.role, content: p.text || '' }));
-        } catch {}
+        
+        const rawHistory = this.history.map(h => ({ role: h.role, content: h.text }));
 
         import("../core/ContextPacker").then(({ ContextPacker }) => {
           const aiContext = ContextPacker.pack();
           import("../core/AIService").then(({ AIService }) => {
-            AIService.sendMessage(text, aiContext, undefined, history).then(response => {
+            AIService.sendMessage(text, aiContext, undefined, rawHistory).then(response => {
               this.addMessage('ai', response.message);
-              this.syncState(this.serializeChat());
+              this.syncState(JSON.stringify(this.history));
             }).catch(err => {
               console.error("[AssistantBlock] Error:", err);
               this.addMessage('ai', '❌ Error al conectar con el cerebro de IA.');
-              this.syncState(this.serializeChat());
             });
           });
         });
@@ -50,6 +46,13 @@ export class AssistantBlock extends UIComponent {
 
   private addMessage(role: 'user' | 'ai', text: string) {
     if (!this.messageArea) return;
+    
+    // Evitar duplicar en el array si viene desde rehydrate
+    const isDuplicate = this.history.some(m => m.role === role && m.text === text);
+    if (!isDuplicate) {
+      this.history.push({ role, text });
+    }
+    
     const msg = document.createElement('div');
     msg.className = `message ${role}`;
     
@@ -121,14 +124,5 @@ export class AssistantBlock extends UIComponent {
         console.warn("[AssistantBlock] Invalid chat history.");
       }
     }
-  }
-
-  private serializeChat(): string {
-    if (!this.messageArea) return '';
-    const messages = Array.from(this.messageArea.querySelectorAll('.message')).map(msg => ({
-      role: msg.classList.contains('user') ? 'user' : 'ai',
-      text: msg.textContent
-    }));
-    return JSON.stringify(messages);
   }
 }
