@@ -111,7 +111,7 @@ export class InlineAIPrompt {
       let thinkHtml = '';
       if (thinkText) {
         thinkHtml = `
-          <details style="background: rgba(255,255,255,0.05); padding: 6px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid var(--accent-color); font-size: 0.75rem; color: #aaa;">
+          <details open style="background: rgba(255,255,255,0.05); padding: 6px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid var(--accent-color); font-size: 0.75rem; color: #aaa;">
             <summary style="cursor: pointer; font-weight: bold; margin-bottom: 2px;">🧠 Razonamiento</summary>
             <div style="white-space: pre-wrap; padding-left: 8px; opacity: 0.8;">\${this.escapeHtml(thinkText)}</div>
           </details>
@@ -155,7 +155,7 @@ export class InlineAIPrompt {
 
     // Llamada real al servicio de IA
     import("../core/AIService").then(({ AIService }) => {
-      AIService.sendMessage(text, aiContext, this.currentBlockId || undefined).then(response => {
+      AIService.sendMessage(text, aiContext, this.currentBlockId || undefined, messages).then(response => {
         messages.push({ role: 'ai', content: response.message });
         this.renderMessages();
         if (btn) {

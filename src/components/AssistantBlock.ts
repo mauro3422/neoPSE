@@ -24,12 +24,17 @@ export class AssistantBlock extends UIComponent {
         const text = this.chatInput.value;
         this.addMessage('user', text);
         this.chatInput.value = '';
-        this.syncState(this.serializeChat());
+        const historyStr = this.serializeChat();
+        let history: { role: 'user' | 'ai', content: string }[] = [];
+        try {
+          const parsed: ChatMessage[] = JSON.parse(historyStr || '[]');
+          history = parsed.map(p => ({ role: p.role, content: p.text || '' }));
+        } catch {}
 
         import("../core/ContextPacker").then(({ ContextPacker }) => {
           const aiContext = ContextPacker.pack();
           import("../core/AIService").then(({ AIService }) => {
-            AIService.sendMessage(text, aiContext).then(response => {
+            AIService.sendMessage(text, aiContext, undefined, history).then(response => {
               this.addMessage('ai', response.message);
               this.syncState(this.serializeChat());
             }).catch(err => {
@@ -60,6 +65,7 @@ export class AssistantBlock extends UIComponent {
 
     if (thinkText) {
       const thinkBox = document.createElement('details');
+      thinkBox.setAttribute('open', '');
       thinkBox.style.background = 'rgba(255,255,255,0.05)';
       thinkBox.style.padding = '8px';
       thinkBox.style.borderRadius = '4px';

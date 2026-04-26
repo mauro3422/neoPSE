@@ -21,7 +21,12 @@ export class AIService {
   /**
    * Envía una consulta a la IA incluyendo el contexto completo del mapa.
    */
-  public static async sendMessage(prompt: string, context: AIPackage, blockId?: string): Promise<AIResponse> {
+  public static async sendMessage(
+    prompt: string, 
+    context: AIPackage, 
+    blockId?: string,
+    history?: { role: 'user' | 'ai', content: string }[]
+  ): Promise<AIResponse> {
     const { AssistantPrompt, InlinePrompt } = await import("./PromptBuilder");
     const builder = blockId 
       ? new InlinePrompt(context, blockId) 
@@ -38,9 +43,13 @@ export class AIService {
           model: "fallback-model", 
           messages: [
             { role: "system", content: systemPrompt },
+            ...(history ? history.map(h => ({ 
+              role: h.role === 'ai' ? 'assistant' as const : 'user' as const, 
+              content: h.content 
+            })) : []),
             { role: "user", content: prompt }
           ],
-          temperature: 0.7
+          temperature: 0.6
         })
       });
 
