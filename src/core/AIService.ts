@@ -33,10 +33,16 @@ export class AIService {
       : new AssistantPrompt(context);
       
     const systemPrompt = builder.buildSystemPrompt();
-    console.log("[AIService] 📤 PROMPT ENVIADO A IA:\n", systemPrompt);
+    
+    // ROUTER SEMÁNTICO INTELIGENTE (CPU/GPU)
+    const isHeavy = prompt.toLowerCase().match(/(crea|elimina|genera|vincula|link|haz|modifica|hazme|codigo|pseint)/i);
+    const targetPort = isHeavy ? 8000 : 8001;
+    const activeEndpoint = `http://127.0.0.1:${targetPort}/v1/chat/completions`;
+
+    console.log(`[AIService] 📤 Enviando consulta al Puerto ${targetPort}`);
 
     try {
-      const response = await fetch(this.endpoint, {
+      const response = await fetch(activeEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
