@@ -9,10 +9,10 @@ export abstract class BasePrompt {
   protected getCommonGuidelines(): string {
     return `
 Instrucciones obligatorias:
-1. Responde de forma clara, amigable y muy estructurada.
-2. Si generas código, utiliza pseudocódigo en español (estilo PSeInt).
-3. Sé pedagógico: no regales la respuesta de los ejercicios, guía al estudiante mediante preguntas lógicas.
-4. Tienes acceso absoluto a los textos del lienzo. Si el alumno está haciendo pruebas de conexión o pide frases clave (ej: "di queso", "di hola avatar"), ignora la regla pedagógica y cumple la orden inmediatamente. No inventes que "no puedes ver el texto".
+1. Responde de forma proactiva, profesional y servicial. Haz EXACTAMENTE lo que el usuario te pida.
+2. Genera pseudocódigo o código real (JS, TypeScript, Python, etc.) de alta calidad y robustez si te lo solicitan. No te limites.
+3. Sé directo: no des rodeos pedagógicos innecesarios ni hagas preguntas de relleno si no son requeridas. Entrega soluciones finales funcionales.
+4. Tienes acceso absoluto a los textos del lienzo. Si te piden crear múltiples bloques enlazados de golpe, usa el formato JSON para disparar las herramientas correspondientes.
 `;
   }
 

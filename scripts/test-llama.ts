@@ -98,21 +98,79 @@ function askQuestion() {
   });
 }
 
-async function runAutomatedTests() {
-  const tests = [
-    { name: "Creación de Bloques", query: "Por favor crea una nota que diga 'Revisión final'" },
-    { name: "Edición de Bloques", query: "Modifica el bloque node-1 para que su contenido sea 'X = 100'" },
-    { name: "Enlazado de Bloques", query: "Conecta el bloque node-1 con el bloque node-2" },
-    { name: "Eliminación de Bloques", query: "Borra el bloque node-2 del tablero" }
+interface MockBlock {
+  id: string;
+  type: string;
+  content: string;
+}
+
+let mockWorkspace: MockBlock[] = [
+  { id: 'node-1', type: 'pseudocode', content: 'X = 50' },
+  { id: 'node-2', type: 'pseudocode', content: 'Y = 20' },
+  { id: 'node-3', type: 'note', content: 'Revisión final' }
+];
+
+function printWorkspace() {
+  console.log("\n📦 ESTADO ACTUAL DEL ESPACIO DE TRABAJO:");
+  if (mockWorkspace.length === 0) {
+    console.log("  [VACÍO]");
+  } else {
+    mockWorkspace.forEach(b => {
+      console.log(`  🔹 [${b.id}] (${b.type}): "${b.content}"`);
+    });
+  }
+  console.log("\n");
+}
+
+function processTools(response: string) {
+  const regex = /\{\s*"tool_use"\s*:\s*\{\s*"action"\s*:\s*"([^"]+)"\s*,\s*"params"\s*:\s*(\{[\s\S]*?\})\s*\}\s*\}/g;
+  let match;
+  
+  while ((match = regex.exec(response)) !== null) {
+    const action = match[1];
+    try {
+      const params = JSON.parse(match[2]);
+      console.log(`\n⚙️ Ejecutando Herramienta IA: "${action}"`);
+      
+      if (action === 'create_block') {
+        const id = `node-${Math.random().toString(36).substr(2, 5)}`;
+        mockWorkspace.push({ id, type: params.type || 'note', content: params.content || '' });
+        console.log(`✅ Bloque ${id} creado satisfactoriamente.`);
+      } 
+      else if (action === 'delete_block') {
+        const targetId = params.blockId;
+        const initialLen = mockWorkspace.length;
+        mockWorkspace = mockWorkspace.filter(b => b.id !== targetId);
+        if (mockWorkspace.length < initialLen) {
+          console.log(`✅ Bloque ${targetId} eliminado satisfactoriamente.`);
+        } else {
+          console.log(`⚠️ Bloque ${targetId} no encontrado en el lienzo.`);
+        }
+      } 
+      else if (action === 'clear_workspace') {
+        mockWorkspace = [];
+        console.log(`✅ Lienzo purgado en su totalidad.`);
+      }
+    } catch(e) {
+      console.error("❌ Error parseando JSON de herramienta:", e);
+    }
+  }
+}
+
+async function runSimulation() {
+  console.log("\n🎮 INICIANDO PIPELINE END-TO-END DE LA IA...");
+  printWorkspace();
+
+  const prompts = [
+    "Crea una nota que diga 'Suma de datos'",
+    "Borra el nodo node-1",
+    "Borra todos los bloques del lienzo"
   ];
 
-  console.log("\n🧪 INICIANDO SUITE DE TESTS AUTOMATIZADA DE HERRAMIENTAS...\n");
-
-  for (const t of tests) {
-    console.log(`\n--------------------------------------\n📌 TEST: ${t.name}`);
-    console.log(`💬 Query: "${t.query}"`);
-
-    const builder = new InlinePrompt(mockContext, "node-1");
+  for (const query of prompts) {
+    console.log(`\n==============================================\n💬 ORDEN DEL ALUMNO: "${query}"`);
+    
+    const builder = new AssistantPrompt(mockContext);
     const systemPrompt = builder.buildSystemPrompt();
 
     try {
@@ -123,64 +181,27 @@ async function runAutomatedTests() {
           model: "fallback-model",
           messages: [
             { role: "system", content: systemPrompt },
-            { role: "user", content: t.query }
+            { role: "user", content: query }
           ],
-          temperature: 0.2,
-          response_format: { type: "json_object" }
+          temperature: 0.2
         })
       });
       const data = await res.json();
       const content = data.choices?.[0]?.message?.content || "VACÍO";
       
-      console.log("🤖 RESPUESTA:");
+      console.log("\n🤖 RESPUESTA DE LA IA:");
       console.log(content);
       
-      const success = content.includes('"tool_use"');
-      console.log(success ? "✅ FORMATO CORRECTO" : "❌ FALLÓ (Sin JSON de tool)");
+      processTools(content);
+      printWorkspace();
+      
     } catch(e) {
-      console.error("💥 Error en test:", e);
+      console.error("💥 Error en el pipeline:", e);
     }
   }
 }
 
-async function runSimulation() {
-  console.log("\n🎮 INICIANDO SIMULACIÓN END-TO-END DE LA IA...\n");
-
-  const query = "Por favor crea una nota que diga 'Hola Mundo' en el lienzo.";
-  console.log(`💬 Solicitud del Alumno:\n"${query}"\n`);
-
-  const builder = new InlinePrompt(mockContext, "node-1");
-  const systemPrompt = builder.buildSystemPrompt();
-
-  try {
-    const res = await fetch("http://127.0.0.1:8000/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "fallback-model",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: query }
-        ],
-        temperature: 0.2,
-        response_format: { type: "json_object" }
-      })
-    });
-    const data = await res.json();
-    const content = data.choices?.[0]?.message?.content || "VACÍO";
-    
-    console.log("🤖 RESPUESTA DE LA IA:");
-    console.log(content);
-    
-    console.log("\n✅ Simulación completada con éxito.");
-  } catch(e) {
-    console.error("💥 Error en simulación:", e);
-  }
-}
-
-if (process.argv.includes('--automated')) {
-  runAutomatedTests();
-} else if (process.argv.includes('--simulate')) {
+if (process.argv.includes('--automated') || process.argv.includes('--simulate')) {
   runSimulation();
 } else {
   console.log("🚀 Consola Interactiva de Depuración de IA iniciada.");
