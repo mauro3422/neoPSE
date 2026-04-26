@@ -69,7 +69,10 @@ Tienes visión directa y absoluta de este bloque. Puedes ver su contenido en tie
 Contenido actual del Bloque que estás analizando en este instante:
 "${blockContent}"
 
-Tu misión se limita estrictamente a asistir con la lógica de este bloque en particular. No digas que no puedes leerlo.
+Flujo de ejecución completo (Bloques enlazados en orden lógico):
+${JSON.stringify(this.context.executionSequence)}
+
+Tu misión se limita principalmente a asistir con la lógica de este bloque en particular, pero considera el flujo completo de bloques enlazados provisto arriba. No digas que no puedes leer el lienzo.
 
 Puedes:
 1. Explicar qué hace la pieza lógica.
