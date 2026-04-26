@@ -91,7 +91,7 @@ class BenchmarkEngine {
     this.scenarios.push(new TestScenario({ q, type }));
   }
 
-  public async runAll(concurrency: number = 3) {
+  public async runAll(concurrency: number = 4) {
     const pool = [...this.scenarios];
     const results: any[] = [];
     const reportPath = 'stress_test_report.md';
