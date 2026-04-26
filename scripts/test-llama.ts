@@ -206,7 +206,7 @@ async function runSimulation() {
     const systemPrompt = builder.buildSystemPrompt();
 
     try {
-      console.log(`\n💬 EN COLA -> PROMPT: "${test.q}"`);
+      console.log(`\n🚀 [GPU SLOT] Procesando: "${test.q}"`);
       const res = await fetch("http://127.0.0.1:8000/v1/chat/completions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -223,13 +223,20 @@ async function runSimulation() {
       const data = await res.json();
       const content = data.choices?.[0]?.message?.content || "";
       
-      fs.appendFileSync(reportPath, `### 📌 Query: ${test.q}\n\n🤖 **Respuesta:**\n${content}\n\n---\n\n`);
+      console.log(`\n------------------------------------------------`);
+      console.log(`📥 [EVIDENCIA RECIBIDA] para: "${test.q}"`);
+      
+      const isTool = content.includes('"tool_use"');
+      const isPseInt = content.toLowerCase().includes("proceso") || content.toLowerCase().includes("definir");
+      
+      console.log(`   🧠 AGENTE ARQUITECTO: ${isPseInt ? "✅ ESTRUCTURADO EN PSEINT" : "⚠️ TEXTO LIBRE"}`);
+      console.log(`   🛠️ ENCADENAMIENTO DE HERRAMIENTA: ${isTool ? "✅ DETECTADO" : "❌ NO EMITIDO"}`);
+      console.log(`   📏 LONGITUD DE RESPUESTA: ${content.length} caracteres`);
+
+      fs.appendFileSync(reportPath, `\n## 📝 TEST: ${test.q}\n\n### 🤖 Respuesta del Modelo:\n\`\`\`\n${content}\n\`\`\`\n\n- **PSeInt detectado:** ${isPseInt ? "Sí" : "No"}\n- **Herramienta invocada:** ${isTool ? "Sí" : "No"}\n\n---\n`);
 
       if (content.length > 50) {
-        console.log(`✅ COMPLETADO -> "${test.q.substring(0, 30)}..."`);
         passedCount++;
-      } else {
-        console.log(`❌ FALLIDO -> Respuesta demasiado corta para: "${test.q}"`);
       }
     } catch (e) {
       console.error(`💥 Error en prompt "${test.q}":`, e);
