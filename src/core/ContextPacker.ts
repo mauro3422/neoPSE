@@ -43,7 +43,8 @@ export class ContextPacker {
         blockId: data.id,
         title: title,
         type: data.type,
-        content: b.getContent() || data.content || ""
+        content: b.getContent() || data.content || "",
+        position: data.position
       };
     });
 

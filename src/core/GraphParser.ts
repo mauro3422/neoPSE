@@ -7,6 +7,7 @@ export interface ExecutionStep {
   title: string;
   type: BlockType;
   content: string;
+  position?: { x: number, y: number };
 }
 
 /**
@@ -95,7 +96,8 @@ export class GraphParser {
         blockId: id,
         title: title,
         type: block.type,
-        content: block.content || ""
+        content: block.content || "",
+        position: block.position
       };
     });
   }
