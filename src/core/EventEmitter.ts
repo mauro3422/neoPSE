@@ -7,7 +7,8 @@ export enum AppEvents {
   BLOCK_DELETED = 'BLOCK_DELETED',
   REQUEST_DELETE = 'REQUEST_DELETE',
   REQUEST_OPEN_FOLDER = 'REQUEST_OPEN_FOLDER',
-  REQUEST_SUCTION = 'REQUEST_SUCTION'
+  REQUEST_SUCTION = 'REQUEST_SUCTION',
+  MODULE_CREATED = 'MODULE_CREATED'
 }
 
 /**
@@ -23,6 +24,7 @@ interface EventMap {
   [AppEvents.REQUEST_DELETE]: void;
   [AppEvents.REQUEST_OPEN_FOLDER]: string; // folderId
   [AppEvents.REQUEST_SUCTION]: { firstId: string, folderEl: HTMLElement, connectedData: any[] };
+  [AppEvents.MODULE_CREATED]: any;
 }
 
 type Callback<T> = (data: T) => void;

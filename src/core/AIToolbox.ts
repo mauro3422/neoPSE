@@ -174,6 +174,23 @@ export class AIToolbox {
         });
       }
     });
+
+    this.registerTool({
+      name: "create_module_file",
+      description: "Guarda el pseudocódigo estructurado como un archivo físico modular en el sistema.",
+      parameters: {
+        type: "object",
+        properties: {
+          filename: { type: "string", description: "Nombre del archivo (ej: personajes.pse)" },
+          content: { type: "string", description: "Contenido completo del algoritmo en pseudocódigo" }
+        },
+        required: ["filename", "content"]
+      },
+      execute: (args: any) => {
+        console.log(`[AIToolbox] Guardando archivo modular: ${args.filename}`);
+        eventBus.emit(AppEvents.MODULE_CREATED, args);
+      }
+    });
   }
 
   public static registerTool(tool: AITool) {
