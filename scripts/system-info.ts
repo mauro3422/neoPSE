@@ -3,7 +3,7 @@ import * as os from 'os';
 
 function printDashboard() {
   const benchPath = 'prompt_benchmarks.json';
-  let total = 0, passed = 0, avgTime = 0;
+  let total = 0, passed = 0, avgTime = 0, toolRate = 0, pseIntRate = 0;
 
   if (fs.existsSync(benchPath)) {
     try {
@@ -11,8 +11,10 @@ function printDashboard() {
       total = data.length;
       passed = data.filter((r: any) => r.success).length;
       avgTime = total > 0 ? Math.round(data.reduce((acc: number, r: any) => acc + r.durationMs, 0) / total) : 0;
+      toolRate = total > 0 ? Math.round((data.filter((r: any) => r.isTool).length / total) * 100) : 0;
+      pseIntRate = total > 0 ? Math.round((data.filter((r: any) => r.isPseInt).length / total) * 100) : 0;
     } catch (e) {
-      // Ignorar errores de lectura
+      // Ignorar errores
     }
   }
 
@@ -24,6 +26,7 @@ function printDashboard() {
   console.log(`🤖 Agentes GPU Concurrentes: 2 (Puerto 8000)`);
   console.log(`🤖 Agentes CPU Concurrentes: 1 (Puerto 8001)`);
   console.log(`📊 Último Benchmark: ${passed}/${total} Casos Exitosos (${avgTime}ms prom)`);
+  console.log(`🛠️  Uso de Tools: ${toolRate}% | 🧠 Cumplimiento PSeInt: ${pseIntRate}%`);
   console.log(`📈 Estado del Hardware: ${freeMem}GB Libres de ${totalMem}GB RAM`);
   console.log("==============================================\n");
 }
