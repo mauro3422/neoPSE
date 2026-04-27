@@ -1,6 +1,6 @@
 import { BlockType } from "../types";
 import { BlockRegistry } from "./BlockRegistry";
-import { PseudocodeBlock, NoteBlock, FolderBlock } from "../components/SpecializedBlocks";
+import { PseudocodeBlock, NoteBlock, FolderBlock, DatabaseBlock } from "../components/SpecializedBlocks";
 
 export function initBlockRegistry() {
   BlockRegistry.register({
@@ -39,5 +39,15 @@ export function initBlockRegistry() {
     useHeader: false,
     useResizer: false,
     mass: 2.0
+  });
+
+  BlockRegistry.register({
+    type: BlockType.DATABASE,
+    title: 'Tabla DB',
+    className: 'database-block',
+    structureHtml: '<div class="code-area db-schema" contenteditable="true">-- Definir Tabla SQL\\nCREATE TABLE usuarios (\\n  id INT PRIMARY KEY,\\n  nombre VARCHAR(50)\\n);</div>',
+    controller: DatabaseBlock,
+    useHeader: true,
+    mass: 1.5
   });
 }

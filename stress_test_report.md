@@ -1,166 +1,249 @@
 # 📊 REPORTE DE EVIDENCIA DE STRESS TEST
 
 
-## 📝 TEST: ¿Qué es un bucle?
+## 📝 TEST: Hola, ¿cómo estás?
 - **Tipo:** assistant
-- **Tiempo:** 56785ms
+- **Tiempo:** 0ms
 - **PSeInt:** No
 - **Herramienta:** No
 
 ### 💬 Respuesta Generada:
 ```
-¡Excelente pregunta! Un bucle es una estructura fundamental en la programación que permite ejecutar un bloque de código repetidamente, según una condición específica. Piensa en él como una máquina que se repite: cada vez que la condición sea verdadera, el bloque se ejecuta.
-
-**¿Por qué es útil?**
-
-*   **Automatización:** Permite realizar tareas repetitivas sin escribir código repetitivo.
-*   **Eficiencia:** Reduce la cantidad de código necesario para lograr una tarea.
-*   **Flexibilidad:** Puedes controlar cuándo y cuántas veces se ejecuta el código.
-
-**Tipos comunes de bucles:**
-
-*   **Bucle `for`:** Útil cuando sabes de antemano cuántas veces quieres que se repita el código.
-*   **Bucle `while`:** Útil cuando la condición para repetir el código depende de un estado que cambia durante la ejecución.
-
-**Ejemplo simple en pseudocódigo:**
-
-```
-inicio
-  // Inicialización
-  X = 0
-  contador = 0
-
-  // Bucle while
-  mientras contador < 10
-    X = X + 1
-    contador = contador + 1
-  fin mientras
-
-  // Fin del bucle
-  imprimir(X)
-fin
+undefined
 ```
 
-En este ejemplo, el bucle `while` se ejecutará mientras `contador` sea menor que 10.
-
-**En el contexto de tu sistema:**
-
-Entender los bucles es crucial para construir aplicaciones modulares y mantenibles. Al dividir tus tareas en bucles, puedes crear componentes reutilizables y mejorar la claridad del código.
-
-Recuerda, la clave es pensar en el problema que quieres resolver y elegir el tipo de bucle que mejor se adapte a tus necesidades. ¡Practica y verás cómo te facilita mucho el trabajo!
-```
-
-## 📝 TEST: Hola, ¿cómo estás?
+## 📝 TEST: ¿Qué es un bucle?
 - **Tipo:** assistant
-- **Tiempo:** 65844ms
-- **PSeInt:** Sí
+- **Tiempo:** 0ms
+- **PSeInt:** No
 - **Herramienta:** No
 
 ### 💬 Respuesta Generada:
 ```
-¡Hola! Soy el NeoPSE Global Orchestrator, tu guía para construir arquitecturas claras y escalables. ¿Cómo puedo ayudarte hoy?  
-
-Vamos a desglosar tu sistema paso a paso usando el enfoque "DIVIDE Y CONQUER" para que sea más manejable.  
-
-### 1. **Modularización: Divide el bloque en módulos pequeños**
-En tu secuencia actual, tienes un bloque muy grande:  
-```json
-{"blockId": "node-1", "title": "Inicializar", "type": "pseudocode", "content": "Definir X = 50"}
-```  
-Este es un buen punto de partida, pero si crecimos, necesitaremos separarlo.  
-**Recomendación**:  
-- Identifica las funciones o lógicas que están en este bloque.  
-- Crea módulos separados para cada una (por ejemplo, `initializar_variable`, `calcular_resultado`).  
-- Esto mejora la reutilización y el mantenimiento.  
-
-### 2. **Foldering: Organiza los módulos en carpetas**
-Si tienes muchos módulos, agrupa los que están relacionados. Por ejemplo:  
-```
-/coordinador  
-  /servicio_de_datos  
-  /servicio_de_validacion  
-/helper  
-  /utilidades  
-  /formateo  
-```  
-Esto facilita la navegación y evita bloques dispersos.  
-
-### 3. **Detección de candidatos: ¿Qué bloques separar?**
-Revisa tu secuencia y busca redundancias o bloques que puedan unirse.  
-- Si ves que dos módulos hacen lo mismo, considera fusionarlos.  
-- Si un módulo crea muchos dependencias, podría ser un candidato para simplificar.  
-
-### 4. **Arquitectura pedagógica: ¿Por qué modular?**
-La modularidad no es solo una técnica, sino una filosofía.  
-- **Escalabilidad**: Cada módulo puede escalar independientemente.  
-- **Reutilización**: Los módulos se pueden usar en otros proyectos.  
-- **Facilidad de pruebas**: Puedes probar cada módulo por separado.  
-
-¿Quieres que trabajemos juntos en dividir este bloque o en crear una estructura más clara?  
-
-¡Estoy aquí para guiarte paso a paso!  
-¿Qué te parece si empezamos por analizar este bloque?
+undefined
 ```
 
 ## 📝 TEST: ¿Cuál es la diferencia entre un bucle Mientras y un bucle Para?
 - **Tipo:** assistant
-- **Tiempo:** 66944ms
+- **Tiempo:** 0ms
 - **PSeInt:** No
 - **Herramienta:** No
 
 ### 💬 Respuesta Generada:
 ```
-¡Excelente pregunta! Entender la diferencia entre bucles `while` y `for` es clave para construir sistemas robustos. Vamos a desglosarlo de forma clara y visual.
-
-## ¿Qué es cada uno?
-
-### 1. **Bucle `for`**
-Un bucle `for` es ideal cuando sabes **exactamente cuántas veces** quieres ejecutar un bloque de código. Es perfecto para iteraciones definidas.
-
-**Ejemplo:**
-```python
-for i in range(5):
-    print(i)
+undefined
 ```
 
-- **Parámetros:** `initial`, `condition`, `range`.
-- **Uso:** Cuando el número de iteraciones es conocido de antemano.
+## 📝 TEST: No entiendo nada de programación, ¿me ayudas?
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
 
-### 2. **Bucle `while`**
-Un bucle `while` se ejecuta mientras una condición sea **verdadera**. Es útil cuando no sabes de antemano cuántas veces se necesitan iteraciones.
-
-**Ejemplo:**
-```python
-contador = 0
-while contador < 5:
-    print(contador)
-    contador += 1
+### 💬 Respuesta Generada:
+```
+undefined
 ```
 
-- **Parámetros:** `condición`.
-- **Uso:** Cuando la condición depende de un estado que cambia durante la ejecución.
+## 📝 TEST: ¿De qué color es el cielo?
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
 
-## ¿Cuándo usar cada uno?
+### 💬 Respuesta Generada:
+```
+undefined
+```
 
-| Situación | Recomendación |
-|-----------|----------------|
-| Sabes cuántas veces | Usa `for` |
-| No sabes cuántas | Usa `while` |
-| Necesitas iterar sobre una secuencia | `for` |
-| Necesitas controlar un contador | `while` |
+## 📝 TEST: Quiero una metáfora para entender qué es una Pila (Stack).
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
 
-## ¿Por qué es importante entender esto?
+### 💬 Respuesta Generada:
+```
+undefined
+```
 
-La elección del bucle afecta directamente la **mantenibilidad** y **escalabilidad** de tu código. Un bucle mal elegido puede llevar a:
-- Código difícil de leer.
-- Errores lógicos.
-- Dificultad para escalar el sistema.
+## 📝 TEST: ¿Por qué usamos pseudocódigo en lugar de código real?
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
 
-## Ejemplo práctico en nuestro contexto
+### 💬 Respuesta Generada:
+```
+undefined
+```
 
-Imagina que estás diseñando un sistema para procesar datos en bloques. Si sabes que procesarás 10 registros, usarías un `for`. Pero si el número de registros cambia dinámicamente, un `while` sería más adecuado.
+## 📝 TEST: ¿Qué lenguajes puedo exportar desde aquí?
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
 
-Recuerda: **Modulariza tu lógica** y elige el bucle que mejor se ajuste a tu flujo de trabajo. ¡Esto te ayudará a construir arquitecturas más limpias y sostenibles!
+### 💬 Respuesta Generada:
+```
+undefined
+```
 
-¿Tienes alguna duda adicional sobre esto?
+## 📝 TEST: ¿Te gusta la música?
+- **Tipo:** assistant
+- **Tiempo:** 11506ms
+- **PSeInt:** No
+- **Herramienta:** No
+
+### 💬 Respuesta Generada:
+```
+¡Claro que sí! La música es una forma maravillosa de expresarse y conectar con otros. En mi trabajo como NeoPSE Global Orchestrator, me encanta cómo cada nota puede transformar un espacio, al igual que cada módulo puede mejorar la claridad de un sistema. ¿Qué te parece si exploramos juntos cómo estructurar algo más organizado? 🎵
+```
+
+## 📝 TEST: Explícame qué significa la complejidad algorítmica O(N).
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
+
+### 💬 Respuesta Generada:
+```
+undefined
+```
+
+## 📝 TEST: ¿Para qué sirve la palabra clave Definir?
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
+
+### 💬 Respuesta Generada:
+```
+undefined
+```
+
+## 📝 TEST: Dame consejos sobre cómo depurar código manualmente.
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
+
+### 💬 Respuesta Generada:
+```
+undefined
+```
+
+## 📝 TEST: Crea un bloque de pseudocódigo que calcule el área de un círculo pidiéndole el radio al usuario.
+- **Tipo:** assistant
+- **Tiempo:** 6777ms
+- **PSeInt:** No
+- **Herramienta:** Sí
+
+### 💬 Respuesta Generada:
+```
+{
+  "message": "Entendido. Vamos a estructurar este bloque de pseudocódigo paso a paso para que sea claro y modular.",
+  "tool_use": {
+    "action": "create_block",
+    "params": {
+      "type": "pseudocode",
+      "content": "Algoritmo CálculoAreaCirculo\n  1. Solicitar al usuario el radio del círculo.\n  2. Calcular el área usando la fórmula A = π * r^2.\n  3. Mostrar el resultado al usuario."
+    }
+  }
+}
+```
+
+## 📝 TEST: Modifica el bloque node-1 para cambiar el valor inicial a 100.
+- **Tipo:** inline
+- **Tiempo:** 4688ms
+- **PSeInt:** No
+- **Herramienta:** Sí
+
+### 💬 Respuesta Generada:
+```
+{
+  "message": "He ajustado el valor inicial del bloque para que sea 100. Ahora el resultado refleja ese cambio.",
+  "tool_use": {
+    "action": "edit_block_content",
+    "params": {
+      "blockId": "node-1",
+      "content": "Definir X = 100",
+      "title": "Actualizar valor inicial"
+    }
+  }
+}
+```
+
+## 📝 TEST: Hazme un resumen de lo que llevo aprendido.
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
+
+### 💬 Respuesta Generada:
+```
+undefined
+```
+
+## 📝 TEST: ¡Adiós, gracias por todo!
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
+
+### 💬 Respuesta Generada:
+```
+undefined
+```
+
+## 📝 TEST: ¿Qué es una función recursiva?
+- **Tipo:** assistant
+- **Tiempo:** 0ms
+- **PSeInt:** No
+- **Herramienta:** No
+
+### 💬 Respuesta Generada:
+```
+undefined
+```
+
+## 📝 TEST: Limpia el espacio de trabajo eliminando todos los bloques existentes.
+- **Tipo:** assistant
+- **Tiempo:** 6084ms
+- **PSeInt:** No
+- **Herramienta:** Sí
+
+### 💬 Respuesta Generada:
+```
+{
+  "message": "Entendido. Vamos a limpiar el espacio de trabajo eliminando todos los bloques existentes. Esto nos permitirá comenzar con una base sólida y organizada.",
+  "tool_use": {
+    "action": "delete_block",
+    "params": {
+      "blockId": "node-1",
+      "type": "pseudocode",
+      "content": "Eliminar bloque: node-1"
+    }
+  }
+}
+```
+
+## 📝 TEST: Conecta el bloque node-1 con el bloque node-2 mediante un enlace directo.
+- **Tipo:** assistant
+- **Tiempo:** 6622ms
+- **PSeInt:** No
+- **Herramienta:** Sí
+
+### 💬 Respuesta Generada:
+```
+{
+  "message": "Para conectar los bloques de manera directa, primero debemos identificar sus propósitos y relaciones. Vamos a estructurarlo en módulos pequeños para mejorar la claridad.",
+  "tool_use": {
+    "action": "create_block",
+    "params": {
+      "type": "pseudocode",
+      "content": "Crear enlace directo entre node-1 y node-2:\n    Link(node-1, node-2)\n"
+    }
+  }
+}
 ```

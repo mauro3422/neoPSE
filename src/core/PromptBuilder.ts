@@ -69,3 +69,17 @@ export class InlinePrompt extends BasePrompt {
     return template;
   }
 }
+
+/**
+ * Prompt para el Agente Background (Sintetizador)
+ */
+export class BackgroundSynthesizerPrompt extends BasePrompt {
+  public buildSystemPrompt(): string {
+    let template = (prompts as any).backgroundSynthesizerPrompt || "";
+
+    template = template.replaceAll("{globalNotes}", JSON.stringify(this.context.globalNotes));
+    template = template.replaceAll("{executionSequence}", JSON.stringify(this.context.executionSequence));
+
+    return template;
+  }
+}

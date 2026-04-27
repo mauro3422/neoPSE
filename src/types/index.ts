@@ -4,7 +4,8 @@ export enum BlockType {
   PSEUDOCODE = 'pseudocode',
   NOTE = 'note',
   ASSISTANT = 'assistant',
-  FOLDER = 'folder'
+  FOLDER = 'folder',
+  DATABASE = 'database'
 }
 
 export interface BlockDefinition {

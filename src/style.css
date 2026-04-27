@@ -252,6 +252,25 @@ body.linking-mode .block { cursor: crosshair !important; border-style: dashed; }
   letter-spacing: 0.5px;
 }
 
+/* ESTILOS DATABASE BLOCK */
+.database-block {
+  border: 1px solid #10b981 !important;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15) !important;
+}
+
+.database-block .block-header {
+  border-bottom: 1px solid #10b981;
+}
+
+.database-block .block-title {
+  color: #10b981;
+}
+
+.database-block .code-area.db-schema {
+  font-family: var(--font-mono);
+  color: #34d399;
+}
+
 /* FEEDBACK DE ALIMENTACIÓN */
 .folder-block.is-eating .folder-icon {
   animation: folder-pulse 0.4s ease-out;

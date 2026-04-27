@@ -149,9 +149,27 @@ Entregables (Completados):
   - *Global Orchestrator*: Filosofía 'Divide y Vencerás', modularidad y carpetas.
   - *Inline Copilot*: Optimización local y micro-tutoría.
 
-Próximos Pasos (En cola):
-- **Renombrado Dinámico**: Permitir que el modelo asigne títulos descriptivos a los bloques basados en su lógica.
-- **Agente Background (Sintetizador)**: Demonio en segundo plano que analiza el canvas constantemente para sintetizar ideas o proponer pseudocódigo.
+## Fase 6.2: Renombrado Dinámico (Smart Title Agent)
+
+Objetivo:
+- Permitir que los bloques genéricos cobren significado semántico automáticamente.
+
+Checklist:
+- [ ] **Trigger Lógico**: Capturar eventos `blur` / `debounce` tras modificar código.
+- [ ] **Estructura de Prompt**: Plantilla especializada para títulos ultra-cortos (3-5 palabras).
+- [ ] **Inferencia Silenciosa**: Ejecución asíncrona en segundo plano sin interrumpir la edición.
+- [ ] **Micro-animación**: Transición estética al actualizar el título del bloque.
+
+## Fase 6.3: Agente Background (Sintetizador de Estado)
+
+Objetivo:
+- Proveer asistencia predictiva basada en la topología total del canvas.
+
+Checklist:
+- [ ] **Daemon del Sistema**: Ticker de análisis reactivo con umbral de inactividad (cooldown).
+- [ ] **Pipeline de Datos**: Alimentar al modelo usando `GraphParser` y `ContextPacker`.
+- [ ] **Consola Flotante (HUD)**: Espacio no invasivo para mostrar sugerencias, errores preventivos y snippets sugeridos.
+- [ ] **Acciones Rápidas**: Botón de "Aplicar Sugerencia" de un solo clic.
 
 ## Fase 7: Refinamiento
 

@@ -48,6 +48,7 @@ class TestScenario {
       const res = await fetch(`http://127.0.0.1:${port}/v1/chat/completions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(15000),
         body: JSON.stringify({
           model: "fallback-model",
           messages: [
@@ -60,13 +61,23 @@ class TestScenario {
 
       const data = await res.json();
       const content = data.choices?.[0]?.message?.content || "";
+      const usage = data.usage || {};
       const durationMs = Math.round(performance.now() - startTime);
       const os = await import('os');
       const totalMem = Math.round(os.totalmem() / 1024 / 1024 / 1024);
       const freeMem = Math.round(os.freemem() / 1024 / 1024 / 1024);
 
       const isTool = content.includes('"tool_use"');
-      const isPseInt = content.toLowerCase().includes("proceso") || content.toLowerCase().includes("definir") || content.toLowerCase().includes("algoritmo");
+      const isPseint = content.toLowerCase().includes("proceso") || content.toLowerCase().includes("definir") || content.toLowerCase().includes("algoritmo");
+      
+      let isJsonValid = true;
+      if (isTool) {
+        try {
+          JSON.parse(content);
+        } catch {
+          isJsonValid = false;
+        }
+      }
 
       return {
         query: this.test.q,
@@ -74,12 +85,17 @@ class TestScenario {
         category: (this.test as any).category || 'logic',
         durationMs,
         isTool,
-        isPseInt,
+        isPseint,
         freeMemGB: freeMem,
         totalMemGB: totalMem,
         success: content.length > 10,
         response: content,
-        systemPrompt: systemPrompt
+        systemPrompt: systemPrompt,
+        promptTokens: usage.prompt_tokens || 0,
+        completionTokens: usage.completion_tokens || 0,
+        totalTokens: usage.total_tokens || 0,
+        contextSizeChars: systemPrompt.length,
+        isJsonValid
       };
     } catch (e) {
       return {
@@ -88,9 +104,10 @@ class TestScenario {
         category: (this.test as any).category || 'logic',
         durationMs: 0,
         isTool: false,
-        isPseInt: false,
+        isPseint: false,
         success: false,
-        error: true
+        error: true,
+        errorMessage: (e as Error).message || String(e)
       };
     }
   }
@@ -149,7 +166,13 @@ class BenchmarkEngine {
           systemPrompt: res.systemPrompt || "",
           freeMemGB: res.freeMemGB || 0,
           totalMemGB: res.totalMemGB || 0,
-          serviceType: res.category === 'conversational' ? 'cpu' : 'gpu'
+          serviceType: res.category === 'conversational' ? 'cpu' : 'gpu',
+          promptTokens: res.promptTokens,
+          completionTokens: res.completionTokens,
+          totalTokens: res.totalTokens,
+          contextSizeChars: res.contextSizeChars,
+          errorMessage: res.errorMessage,
+          isJsonValid: res.isJsonValid
         });
       }
       console.log(`\n💾 Métricas guardadas en SQLite (Snapshot ID: ${snapshotId})`);

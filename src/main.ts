@@ -17,6 +17,7 @@ import { ChatContextState } from "./core/ChatContextState";
 import { ContextMenu } from "./components/ContextMenu";
 import { blockManager } from "./core/BlockManager";
 import { AnimationManager } from "./core/AnimationManager";
+import { backgroundSynthesizer } from "./core/BackgroundSynthesizer";
 
 initBlockRegistry();
 
@@ -45,6 +46,7 @@ class Workspace {
       this.setupRecentering();
       this.listenToEvents();
       
+      backgroundSynthesizer.triggerCooldown();
       console.log('NeoPSE Workspace 0.8.0 (Hardened) Initialized');
     } catch (error) {
       console.error('Failed to initialize Workspace:', error);

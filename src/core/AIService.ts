@@ -27,10 +27,15 @@ export class AIService {
     blockId?: string,
     history?: { role: 'user' | 'ai', content: string }[]
   ): Promise<AIResponse> {
-    const { AssistantPrompt, InlinePrompt } = await import("./PromptBuilder");
-    const builder = blockId 
-      ? new InlinePrompt(context, blockId) 
-      : new AssistantPrompt(context);
+    const { AssistantPrompt, InlinePrompt, BackgroundSynthesizerPrompt } = await import("./PromptBuilder");
+    let builder;
+    if (blockId === "BACKGROUND_AGENT") {
+      builder = new BackgroundSynthesizerPrompt(context);
+    } else if (blockId) {
+      builder = new InlinePrompt(context, blockId);
+    } else {
+      builder = new AssistantPrompt(context);
+    }
       
     const systemPrompt = builder.buildSystemPrompt();
     

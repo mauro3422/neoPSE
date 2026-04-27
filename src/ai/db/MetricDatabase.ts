@@ -22,6 +22,12 @@ export interface TestResult {
   freeMemGB: number;
   totalMemGB: number;
   serviceType: string;
+  promptTokens?: number;
+  completionTokens?: number;
+  totalTokens?: number;
+  contextSizeChars?: number;
+  errorMessage?: string;
+  isJsonValid?: boolean;
 }
 
 export class MetricDatabase {
@@ -63,6 +69,25 @@ export class MetricDatabase {
         FOREIGN KEY (snapshot_id) REFERENCES snapshots(id)
       );
     `);
+
+    // Migración dinámica de columnas para telemetría extendida
+    const tableInfo = this.db.prepare("PRAGMA table_info(test_results)").all() as any[];
+    const existingColumns = tableInfo.map(col => col.name);
+
+    const newColumns: { name: string, type: string }[] = [
+      { name: 'prompt_tokens', type: 'INTEGER' },
+      { name: 'completion_tokens', type: 'INTEGER' },
+      { name: 'total_tokens', type: 'INTEGER' },
+      { name: 'context_size_chars', type: 'INTEGER' },
+      { name: 'error_message', type: 'TEXT' },
+      { name: 'is_json_valid', type: 'INTEGER' }
+    ];
+
+    newColumns.forEach(col => {
+      if (!existingColumns.includes(col.name)) {
+        this.db.exec(`ALTER TABLE test_results ADD COLUMN ${col.name} ${col.type}`);
+      }
+    });
   }
 
   public saveSnapshot(totalTests: number, passedTests: number, avgLatency: number): number {
@@ -76,8 +101,13 @@ export class MetricDatabase {
 
   public saveTestResult(result: Omit<TestResult, 'id'>) {
     const stmt = this.db.prepare(`
-      INSERT INTO test_results (snapshot_id, query, category, duration_ms, is_tool, is_pseint, response_text, system_prompt, free_mem_gb, total_mem_gb, service_type)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO test_results (
+        snapshot_id, query, category, duration_ms, is_tool, is_pseint, 
+        response_text, system_prompt, free_mem_gb, total_mem_gb, service_type,
+        prompt_tokens, completion_tokens, total_tokens, context_size_chars,
+        error_message, is_json_valid
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     stmt.run(
       result.snapshotId,
@@ -90,7 +120,13 @@ export class MetricDatabase {
       result.systemPrompt,
       result.freeMemGB,
       result.totalMemGB,
-      result.serviceType
+      result.serviceType,
+      result.promptTokens || null,
+      result.completionTokens || null,
+      result.totalTokens || null,
+      result.contextSizeChars || null,
+      result.errorMessage || null,
+      result.isJsonValid === undefined ? null : (result.isJsonValid ? 1 : 0)
     );
   }
 

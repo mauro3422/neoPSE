@@ -281,3 +281,23 @@ export class FolderBlock extends Block {
     };
   }
 }
+
+export class DatabaseBlock extends Block {
+  constructor(selector: string | HTMLElement, skipAnimation: boolean = false) {
+    super(selector, BlockType.DATABASE, skipAnimation);
+    this.rehydrate();
+    if (!skipAnimation) AnimationManager.expand(this.element);
+  }
+
+  private rehydrate() {
+    const data = this.getStateData();
+    const editor = this.element.querySelector<HTMLElement>('.code-area');
+    if (editor && data && data.content) {
+      editor.textContent = data.content;
+    }
+  }
+
+  public getContent(): string {
+    return this.element.querySelector('.code-area')?.textContent || '';
+  }
+}

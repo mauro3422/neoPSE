@@ -3,6 +3,7 @@ import { blockManager } from "./BlockManager";
 import { relationshipManager } from "./RelationshipManager";
 import { BlockType } from "../types";
 import { Block } from "../components/Block";
+import { GeometricEngine } from "./GeometricEngine";
 
 export interface AITool {
   name: string;
@@ -201,6 +202,37 @@ export class AIToolbox {
       execute: (args: Record<string, any>) => {
         console.log(`[AIToolbox] Guardando archivo modular: ${args.filename}`);
         eventBus.emit(AppEvents.MODULE_CREATED, args as { filename: string, content: string });
+      }
+    });
+
+    this.registerTool({
+      name: "auto_layout_nodes",
+      description: "Ordena los bloques en cascada descendente para evitar clusters visuales.",
+      parameters: {
+        type: "object",
+        properties: {}
+      },
+      execute: () => {
+        const blocks = blockManager.getBlocks();
+        let currentY = 100;
+        let currentX = 150;
+
+        blocks.forEach((b: Block) => {
+          const el = document.getElementById(b.serialize().id);
+          if (el) {
+            GeometricEngine.setElementPos(el, { x: currentX, y: currentY });
+            
+            // Emitir evento para guardar posición individual
+            eventBus.emit(AppEvents.BLOCK_MOVE, b.serialize().id);
+
+            currentY += 240; 
+            if (currentY > 900) {
+              currentY = 100;
+              currentX += 350; 
+            }
+          }
+        });
+        console.log(`[AIToolbox] ⚡ Canvas reordenado automáticamente por la IA.`);
       }
     });
   }
