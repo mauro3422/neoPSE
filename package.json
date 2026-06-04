@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "test:ai": "npx tsx scripts/debugger-llm.ts benchmark",
+    "test:ai:historical": "npx tsx scripts/debugger-llm.ts historical",
     "test:toolcall": "npx tsx scripts/debugger-llm.ts toolcall"
   },
   "dependencies": {

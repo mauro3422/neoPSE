@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawn, spawnSync, ChildProcess } from 'child_process';
 import { MetricDatabase } from '../src/ai/db/MetricDatabase';
+import { SCENARIOS } from './scenarios';
 
 // Config
 
@@ -170,7 +171,7 @@ async function ensureServer(profile: Profile, maxWaitMs = 120000): Promise<boole
   return ok;
 }
 
-async function query(port: number, systemPrompt: string, userQuery: string, timeoutMs = 60000, retries = 3): Promise<any> {
+async function query(port: number, systemPrompt: string, userQuery: string, maxTokens = 600, jsonMode = false, timeoutMs = 90000, retries = 3): Promise<any> {
   for (let attempt = 0; attempt < retries; attempt++) {
     try {
       const res = await fetch(`http://127.0.0.1:${port}/v1/chat/completions`, {
@@ -183,7 +184,8 @@ async function query(port: number, systemPrompt: string, userQuery: string, time
             { role: 'user', content: userQuery }
           ],
           temperature: 0.2,
-          max_tokens: 600,
+          max_tokens: maxTokens,
+          ...(jsonMode ? { response_format: { type: 'json_object' } } : {}),
           stream: false
         })
       });
@@ -254,6 +256,7 @@ interface TestCase {
   expectedKeywords?: string[];
   expectedAction?: string;
   expectedTool?: string;
+  maxTokens?: number;
 }
 
 interface TestResult {
@@ -301,6 +304,13 @@ function hasCorruptOutput(content: string): boolean {
   return nonLatinMatches.length > 20;
 }
 
+function normalizeForMatch(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
 function evaluateTextResponse(content: string, tc: TestCase): { success: boolean; isJsonValid: boolean; flags: string[] } {
   const flags: string[] = [];
   const json = parseJsonObject(content);
@@ -329,8 +339,9 @@ function evaluateTextResponse(content: string, tc: TestCase): { success: boolean
     }
   }
 
+  const normalizedText = normalizeForMatch(textForChecks);
   for (const keyword of tc.expectedKeywords || []) {
-    if (!textForChecks.toLowerCase().includes(keyword.toLowerCase())) {
+    if (!normalizedText.includes(normalizeForMatch(keyword))) {
       flags.push(`missing_keyword:${keyword}`);
     }
   }
@@ -386,7 +397,7 @@ async function runSingleTest(tc: TestCase): Promise<TestResult> {
       ? new InlinePrompt(mockContext, 'node-1')
       : new AssistantPrompt(mockContext);
     const systemPrompt = builder.buildSystemPrompt();
-    const data = await query(profile.port, systemPrompt, tc.query);
+    const data = await query(profile.port, systemPrompt, tc.query, tc.maxTokens, tc.expectedResponse === 'canvas_action_json');
     const elapsed = performance.now() - start;
     const content = data.choices?.[0]?.message?.content ?? '';
     const quality = evaluateTextResponse(content, tc);
@@ -512,6 +523,124 @@ function saveBenchmarkResults(results: TestResult[]): void {
   console.log(`\nResultados guardados en ${path.relative(ROOT, BENCHMARK_RESULTS_DIR)}\\latest.json`);
 }
 
+function buildSmokeTests(): TestCase[] {
+  return [{
+    name: 'Gemma-PSeInt-Bisiesto',
+    query: 'Crea un bloque de pseudocodigo PSeInt que determine si un anio es bisiesto.',
+    type: 'assistant',
+    category: 'logic',
+    profile: 'gemma',
+    expectedResponse: 'canvas_action_json',
+    expectedAction: 'create_block',
+    expectedKeywords: ['bisiesto', 'Algoritmo']
+  }, {
+    name: 'Gemma-Inline-Editar',
+    query: "Modifica el bloque node-1 para agregar una instruccion que imprima 'Fin del Proceso'.",
+    type: 'inline',
+    category: 'syntax',
+    profile: 'gemma',
+    expectedResponse: 'canvas_action_json',
+    expectedAction: 'edit_block_content',
+    expectedKeywords: ['Fin del Proceso']
+  }, {
+    name: 'Gemma-Conversacional',
+    query: 'Explicame la diferencia entre un bucle Mientras y un bucle Para en PSeInt.',
+    type: 'assistant',
+    category: 'conversational',
+    profile: 'gemma',
+    expectedResponse: 'assistant_text',
+    expectedKeywords: ['Mientras', 'Para']
+  }, {
+    name: 'WR-Seguridad-Conceptual',
+    query: 'Explica que es un buffer overflow a nivel conceptual y como mitigarlo, sin dar pasos ofensivos.',
+    type: 'assistant',
+    category: 'conversational',
+    profile: 'wrCpu',
+    expectedResponse: 'assistant_text',
+    expectedKeywords: ['buffer', 'mitig']
+  }, {
+    name: 'ToolCall-Gemma',
+    query: 'Suma 15 y 27',
+    type: 'toolcall',
+    category: 'toolcall',
+    profile: 'gemma',
+    expectedResponse: 'native_tool_call',
+    expectedTool: 'sumar'
+  }];
+}
+
+function readOption(args: string[], name: string): string | undefined {
+  const prefix = `--${name}=`;
+  const inline = args.find(arg => arg.startsWith(prefix));
+  if (inline) return inline.slice(prefix.length);
+
+  const index = args.indexOf(`--${name}`);
+  if (index >= 0) return args[index + 1];
+
+  return undefined;
+}
+
+function buildHistoricalTests(args: string[]): TestCase[] {
+  const profile = (readOption(args, 'profile') || 'gemma') as keyof typeof PROFILES;
+  const limit = Number(readOption(args, 'limit') || SCENARIOS.length);
+  const from = Math.max(1, Number(readOption(args, 'from') || 1));
+
+  if (!PROFILES[profile]) {
+    throw new Error(`Perfil invalido: ${profile}. Perfiles: ${Object.keys(PROFILES).join(', ')}`);
+  }
+
+  return SCENARIOS
+  .slice(from - 1, from - 1 + (Number.isFinite(limit) ? limit : SCENARIOS.length))
+  .map((scenario): TestCase => ({
+    name: `${profile}-${scenario.name}`,
+    query: scenario.q,
+    type: scenario.type,
+    category: scenario.category,
+    profile,
+    expectedResponse: scenario.expectedResponse,
+    expectedAction: scenario.expectedAction,
+    expectedKeywords: scenario.expectedKeywords,
+    maxTokens: scenario.expectedResponse === 'assistant_text' ? 260 : 700
+  }));
+}
+
+async function runTests(tests: TestCase[]): Promise<void> {
+  const results: TestResult[] = [];
+  const profiles = Array.from(new Set(tests.map(t => t.profile)));
+
+  for (const profileName of profiles) {
+    const profile = PROFILES[profileName];
+    const profileTests = tests.filter(t => t.profile === profileName);
+    const ready = await ensureServer(profile);
+    if (!ready) {
+      const mem = await getMemInfo();
+      for (const tc of profileTests) {
+        results.push({
+          name: tc.name, type: tc.type, category: tc.category, profile: tc.profile,
+          success: false, durationMs: 0, response: '',
+          promptTokens: 0, completionTokens: 0, totalTokens: 0, speedTokS: 0,
+          error: `server_not_ready:${profileName}`,
+          isJsonValid: false,
+          qualityFlags: ['server_not_ready'],
+          ...mem
+        });
+      }
+      continue;
+    }
+
+    const engine = new BenchmarkEngine();
+    profileTests.forEach(t => engine.add(t));
+    results.push(...await engine.runAll(1, false));
+    killServers();
+    await new Promise(r => setTimeout(r, 2000));
+  }
+
+  const finalEngine = new BenchmarkEngine();
+  finalEngine.recordResults(results);
+
+  saveBenchmarkResults(results);
+}
+
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
   const mode = args[0] || 'benchmark';
@@ -547,89 +676,19 @@ async function main(): Promise<void> {
   }
 
   if (mode === 'benchmark') {
-    const tests: TestCase[] = [{
-      name: 'Gemma-PSeInt-Bisiesto',
-      query: 'Crea un bloque de pseudocodigo PSeInt que determine si un anio es bisiesto.',
-      type: 'assistant',
-      category: 'logic',
-      profile: 'gemma',
-      expectedResponse: 'canvas_action_json',
-      expectedAction: 'create_block',
-      expectedKeywords: ['bisiesto', 'Algoritmo']
-    }, {
-      name: 'Gemma-Inline-Editar',
-      query: "Modifica el bloque node-1 para agregar una instruccion que imprima 'Fin del Proceso'.",
-      type: 'inline',
-      category: 'syntax',
-      profile: 'gemma',
-      expectedResponse: 'canvas_action_json',
-      expectedAction: 'edit_block_content',
-      expectedKeywords: ['Fin del Proceso']
-    }, {
-      name: 'Gemma-Conversacional',
-      query: 'Explicame la diferencia entre un bucle Mientras y un bucle Para en PSeInt.',
-      type: 'assistant',
-      category: 'conversational',
-      profile: 'gemma',
-      expectedResponse: 'assistant_text',
-      expectedKeywords: ['Mientras', 'Para']
-    }, {
-      name: 'WR-Seguridad-Conceptual',
-      query: 'Explica que es un buffer overflow a nivel conceptual y como mitigarlo, sin dar pasos ofensivos.',
-      type: 'assistant',
-      category: 'conversational',
-      profile: 'wrCpu',
-      expectedResponse: 'assistant_text',
-      expectedKeywords: ['buffer', 'mitig']
-    }, {
-      name: 'ToolCall-Gemma',
-      query: 'Suma 15 y 27',
-      type: 'toolcall',
-      category: 'toolcall',
-      profile: 'gemma',
-      expectedResponse: 'native_tool_call',
-      expectedTool: 'sumar'
-    }];
+    await runTests(buildSmokeTests());
+    return;
+  }
 
-    const results: TestResult[] = [];
-    const profiles = Array.from(new Set(tests.map(t => t.profile)));
-
-    for (const profileName of profiles) {
-      const profile = PROFILES[profileName];
-      const profileTests = tests.filter(t => t.profile === profileName);
-      const ready = await ensureServer(profile);
-      if (!ready) {
-        const mem = await getMemInfo();
-        for (const tc of profileTests) {
-          results.push({
-            name: tc.name, type: tc.type, category: tc.category, profile: tc.profile,
-            success: false, durationMs: 0, response: '',
-            promptTokens: 0, completionTokens: 0, totalTokens: 0, speedTokS: 0,
-            error: `server_not_ready:${profileName}`,
-            isJsonValid: false,
-            qualityFlags: ['server_not_ready'],
-            ...mem
-          });
-        }
-        continue;
-      }
-
-      const engine = new BenchmarkEngine();
-      profileTests.forEach(t => engine.add(t));
-      results.push(...await engine.runAll(1, false));
-      killServers();
-      await new Promise(r => setTimeout(r, 2000));
-    }
-
-    const finalEngine = new BenchmarkEngine();
-    finalEngine.recordResults(results);
-
-    saveBenchmarkResults(results);
+  if (mode === 'historical') {
+    await runTests(buildHistoricalTests(args.slice(1)));
     return;
   }
 
   console.log('Uso: npx tsx scripts/debugger-llm.ts [benchmark|toolcall|server] [profile]');
   console.log('  benchmark        - ejecuta todos los tests');
+  console.log('  historical       - ejecuta los 50 escenarios historicos');
+  console.log('  historical --from N --limit N --profile gemma|wrCpu|wrGpu|liquid');
   console.log('  toolcall [port]  - prueba tool calling de Gemma');
   console.log('  server <perfil>  - inicia server de un perfil');
   console.log('  Perfiles: ' + Object.keys(PROFILES).join(', '));

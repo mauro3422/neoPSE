@@ -47,7 +47,8 @@ export class AIService {
 
     const systemPrompt = builder.buildSystemPrompt();
 
-    const isHeavy = this.wantsCanvasAction(prompt, blockId) || prompt.toLowerCase().match(/(codigo|pseint|escribe|programa|algoritmo|funcion|proceso|matriz|vector|arreglo|estructura)/i);
+    const requiresCanvasJson = this.wantsCanvasAction(prompt, blockId);
+    const isHeavy = requiresCanvasJson || prompt.toLowerCase().match(/(codigo|pseint|escribe|programa|algoritmo|funcion|proceso|matriz|vector|arreglo|estructura)/i);
     const targetPort = isHeavy ? 8000 : 8001;
     const endpoints = targetPort === 8000
       ? ["http://127.0.0.1:8000/v1/chat/completions"]
@@ -66,7 +67,8 @@ export class AIService {
           })) : []),
           { role: "user", content: prompt }
         ],
-        temperature: 0.2
+        temperature: 0.2,
+        ...(requiresCanvasJson ? { response_format: { type: "json_object" } } : {})
       });
 
       let response: Response | null = null;
