@@ -34,11 +34,13 @@ export class MetricDatabase {
   private db: Database.Database;
 
   constructor() {
-    const dataDir = path.resolve('src/ai/data');
+    const dbPath = process.env.NEOPSE_BENCHMARK_DB
+      ? path.resolve(process.env.NEOPSE_BENCHMARK_DB)
+      : path.resolve('benchmarks/data/benchmarks.db');
+    const dataDir = path.dirname(dbPath);
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
-    const dbPath = path.join(dataDir, 'benchmarks.db');
     this.db = new Database(dbPath);
     this.initialize();
   }

@@ -2,7 +2,9 @@ import * as fs from 'fs';
 import * as os from 'os';
 
 function printDashboard() {
-  const benchPath = 'prompt_benchmarks.json';
+  const benchPath = fs.existsSync('benchmarks/results/latest.json')
+    ? 'benchmarks/results/latest.json'
+    : 'prompt_benchmarks.json';
   let total = 0, passed = 0, avgTime = 0, toolRate = 0, pseIntRate = 0;
 
   if (fs.existsSync(benchPath)) {
@@ -11,8 +13,8 @@ function printDashboard() {
       total = data.length;
       passed = data.filter((r: any) => r.success).length;
       avgTime = total > 0 ? Math.round(data.reduce((acc: number, r: any) => acc + r.durationMs, 0) / total) : 0;
-      toolRate = total > 0 ? Math.round((data.filter((r: any) => r.isTool).length / total) * 100) : 0;
-      pseIntRate = total > 0 ? Math.round((data.filter((r: any) => r.isPseInt).length / total) * 100) : 0;
+      toolRate = total > 0 ? Math.round((data.filter((r: any) => r.isTool || r.isToolCall).length / total) * 100) : 0;
+      pseIntRate = total > 0 ? Math.round((data.filter((r: any) => r.isPseint || r.isPseInt).length / total) * 100) : 0;
     } catch (e) {
       // Ignorar errores
     }

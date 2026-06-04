@@ -29,3 +29,10 @@ src/ai/server/
 *.gguf
 OllamaSetup.exe
 
+# Local AI runtime / benchmark artifacts
+.runtime/
+benchmark_results.json
+benchmarks/data/
+benchmarks/results/
+.vite-dev*.log
+

@@ -1,309 +1,100 @@
-# AI Integration - Local LLM for Semantic Analysis
+# NeoPSE AI Runtime
 
-This directory contains the AI integration for OmnySys, enabling deep semantic analysis using local LLMs.
+NeoPSE usa modelos locales GGUF servidos por `llama.cpp` con API compatible con OpenAI.
 
-## Architecture
+## Runtime actual
 
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚  Static Analysis (Layer A)              â”‚
-â”‚  â”œâ”€ AST parsing                         â”‚
-â”‚  â”œâ”€ Pattern matching                    â”‚
-â”‚  â””â”€ ~80% of cases âœ…                    â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                  â¬‡ï¸
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚  LLM Analysis (Layer B - Optional)      â”‚
-â”‚  â”œâ”€ Complex code patterns               â”‚
-â”‚  â”œâ”€ Indirect connections                â”‚
-â”‚  â””â”€ ~20% of cases (when needed) ðŸ¤–      â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-```
+- Runtime: `D:\ai-runtime\llama-b9360`
+- Binario principal: `D:\ai-runtime\llama-b9360\llama.exe server`
+- Zip de respaldo: `%TEMP%\neopse-llama-b9360\llama-b9360-bin-win-vulkan-x64.zip`
+- Launcher del proyecto: `src/ai/scripts/start-ai-server.ps1`
 
-## Components
+El script restaura el runtime desde el zip si `llama.exe` falta. Esto fue necesario porque Avast puso en cuarentena `llama.exe`, `llama-server.exe` y launchers temporales durante las pruebas.
 
-### 1. [ai-config.json](ai-config.json)
-Configuration file for AI servers and analysis behavior.
+## Modelos
 
-**Key settings**:
-- `llm.enabled`: Enable/disable LLM analysis (default: `false`)
-- `llm.mode`: Which server to use (`gpu`, `cpu`)
-- `analysis.llmOnlyForComplex`: Only use LLM for complex cases (default: `true`)
-- `performance.enableCPUFallback`: Enable CPU server as fallback (default: `false`)
+Los modelos viven fuera del repo:
 
-### 2. [llm-client.js](llm-client.js)
-HTTP client for communicating with llama-server instances.
+| Perfil | Archivo | Puerto | Uso |
+| --- | --- | --- | --- |
+| Gemma | `D:\ai-models\google_gemma-4-E2B-it-Q4_K_M.gguf` | 8000 | Default, PSeInt, tool calling |
+| WhiteRabbitNeo | `D:\ai-models\WhiteRabbitNeo-2.5-Qwen-2.5-Coder-7B-Q4_K_M.gguf` | 8001 | Seguridad/conversacional en CPU |
+| Liquid | `D:\ai-models\LFM2.5-1.2B-Thinking-Q4_K_M.gguf` | 8002 | Perfil experimental |
 
-**Features**:
-- Health checking
-- Automatic server selection (GPU/CPU)
-- Parallel analysis across multiple servers
-- Timeout handling
+## Comandos
 
-### 3. [scripts/](scripts/)
-Batch scripts to start AI servers.
+```powershell
+npm run dev       # Vite + Gemma
+npm run dev:ai    # Gemma en 127.0.0.1:8000
+npm run dev:wr    # WhiteRabbitNeo en 127.0.0.1:8001
 
-- `brain_gpu.bat` - GPU-accelerated server (port 8000)
-- `start_brain_cpu.bat` - CPU-only server (port 8002)
-
-### 4. [server/](server/) (Transfer from Giteach)
-llama-server binaries and DLLs.
-
-**Required files**:
-- `llama-server.exe` - Main inference engine
-- `ggml-vulkan.dll` - GPU acceleration via Vulkan
-- `llama.dll`, `ggml.dll`, `ggml-base.dll` - Core libraries
-
-### 5. [models/](models/) (Transfer from Giteach)
-AI model files.
-
-**Required model**:
-- `LFM2.5-1.2B-Instruct-Q8_0.gguf` (~1.25 GB)
-  - Liquid Foundation Model 2.5
-  - 1.2B parameters
-  - Q8_0 quantization (high quality)
-  - Optimized for edge/local inference
-
-## Setup
-
-### Prerequisites
-1. **GPU with Vulkan support** (recommended) OR **CPU with 4+ cores**
-2. **4 GB RAM** minimum (8 GB recommended)
-3. **2 GB disk space** for model + binaries
-
-### Installation
-
-**Step 1: Transfer files from Giteach**
-
-```bash
-# From Giteach project directory
-# Copy server binaries
-cp -r Giteach/server/* aver/src/ai/server/
-
-# Copy model
-cp Giteach/models/LFM2.5-1.2B-Instruct-Q8_0.gguf aver/src/ai/models/
+npm run test:toolcall
+npm run test:ai
 ```
 
-**Step 2: Enable AI in config**
+## Flags actuales
 
-Edit [ai-config.json](ai-config.json):
-```json
-{
-  "llm": {
-    "enabled": true,  // â† Change to true
-    "mode": "gpu"     // Or "cpu" if no GPU
-  }
-}
+Gemma y WR se levantan con:
+
+```text
+--ctx-size 8192
+--parallel 1
+-cb
+--temp 0.2
+--reasoning off
+--reasoning-budget 0
+--cache-type-k q8_0
+--cache-type-v q8_0
+--cache-ram 0
 ```
 
-**Step 3: Start AI server**
+Gemma agrega:
 
-```bash
-# Start GPU server
-OmnySys ai start gpu
-
-# OR start both GPU + CPU for parallel processing
-OmnySys ai start both
+```text
+--n-gpu-layers 99
+-fa auto
 ```
 
-**Step 4: Verify**
+WR CPU agrega:
 
-```bash
-OmnySys ai status
+```text
+--n-gpu-layers 0
+--threads 6
 ```
 
-Expected output:
-```
-ðŸ“Š AI Server Status
+Notas:
 
-GPU Server (port 8000):
-  âœ… RUNNING
+- No usar `--chat-template` con Gemma 4; el GGUF trae template nativo `peg-gemma4`.
+- No usar `response_format: { type: "json_object" }` en el cliente por ahora; con Gemma 4 + llama-server fue inestable en pruebas anteriores.
+- `-cb` esta validado con `npm run test:toolcall`.
+- `--no-display-prompt` ya no existe en b9360.
 
-ðŸ’¡ Configuration:
-  LLM enabled: Yes
-  Mode: gpu
-```
+## Tool Calling
 
-## Usage
+Gemma 4 E2B funciona con tool calling nativo via `/v1/chat/completions`.
 
-### Automatic (Integrated with Analysis)
+Validado con:
 
-When AI is enabled, it automatically activates during `OmnySys analyze`:
-
-```bash
-OmnySys analyze /path/to/project
+```powershell
+npm run test:toolcall
 ```
 
-Output will include:
-```
-ðŸ¤– LLM enrichment phase...
-ðŸ“Š Analyzing 12 complex files with LLM...
-âœ“ Enhanced 10/12 files with LLM insights
-```
+Resultado esperado: respuesta con `tool_calls[]`, herramienta `sumar` y argumentos `{"a":15,"b":27}`.
 
-### Manual (CLI Commands)
+## TheStage edge-lm
 
-```bash
-# Start servers
-OmnySys ai start gpu       # GPU only
-OmnySys ai start cpu       # CPU only
-OmnySys ai start both      # Both servers
+TheStageAI publico variantes comprimidas de Gemma 4 E2B/E4B usando `edge-lm`, MLX y `safetensors`.
 
-# Check status
-OmnySys ai status
+Decision actual: no migrar. NeoPSE corre Windows + RX 570/Vulkan + GGUF/llama.cpp. `edge-lm` no expone un reemplazo GGUF/OpenAI-compatible directo para este stack. Si aparece un GGUF compatible, primero debe pasar `npm run test:toolcall` y la suite de benchmarks de NeoPSE.
 
-# Stop servers
-OmnySys ai stop
-```
+Fuentes:
 
-## Configuration
+- https://github.com/TheStageAI/edge-lm
+- https://app.thestage.ai/blog/7x-size-reduction-for-Gemma4-Edge-models?id=14
 
-### When to Use LLM
+## Mas detalles
 
-LLM analysis triggers automatically when:
-1. Static analysis confidence < 0.8 (configurable via `confidenceThreshold`)
-2. Dynamic code detected (`eval()`, computed properties)
-3. Complex patterns (>3 event listeners, >3 shared state writes)
+Ver:
 
-### Performance Tuning
-
-**For small projects (<100 files)**:
-- Use GPU only
-- Set `llmOnlyForComplex: true`
-- Set `maxConcurrentAnalyses: 4`
-
-**For large projects (>500 files)**:
-- Use both GPU + CPU
-- Set `enableCPUFallback: true`
-- Increase `maxConcurrentAnalyses` to 8-12
-
-**Low RAM systems**:
-- Edit `brain_gpu.bat`: reduce `--ctx-size` to 32768
-- Reduce `--parallel` to 2
-- Use CPU server instead
-
-### Prompt Customization
-
-Edit `ai-config.json` â†’ `prompts.analysisTemplate` to customize what the LLM analyzes.
-
-Default prompt focuses on:
-- Shared state detection
-- Event emission/listening
-- Side effects
-- Affected files
-
-You can add custom analysis like:
-- Security patterns
-- Performance anti-patterns
-- Business logic connections
-
-## Troubleshooting
-
-### "No LLM servers available"
-**Cause**: Servers not started or crashed
-
-**Fix**:
-```bash
-OmnySys ai status       # Check status
-OmnySys ai start gpu    # Start servers
-```
-
-Check logs in `logs/ai_brain_gpu.log`
-
-### "Vulkan device not found"
-**Cause**: GPU doesn't support Vulkan or drivers outdated
-
-**Fix**:
-- Update GPU drivers
-- OR switch to CPU mode:
-  ```json
-  { "llm": { "mode": "cpu" } }
-  ```
-
-### "Port already in use"
-**Cause**: Another process using port 8000/8002
-
-**Fix**:
-```bash
-# Windows
-netstat -ano | findstr :8000
-taskkill /F /PID <pid>
-
-# Or change ports in ai-config.json
-```
-
-### "Out of memory"
-**Cause**: Model too large for available RAM/VRAM
-
-**Fix**:
-- Reduce context size in `brain_gpu.bat`:
-  ```batch
-  --ctx-size 32768  (instead of 49152)
-  ```
-- Reduce parallel slots:
-  ```batch
-  --parallel 2  (instead of 4)
-  ```
-- Use CPU server (uses system RAM, not VRAM)
-
-### LLM returns invalid JSON
-**Cause**: Model hallucinating or prompt unclear
-
-**Fix**:
-- Check `ai_brain_gpu.log` for model output
-- Lower temperature in `llm-client.js` (currently 0.1)
-- Simplify `analysisTemplate` in config
-
-## Performance Benchmarks
-
-Tested on:
-- **GPU**: 8GB VRAM
-- **CPU**: Ryzen 5 5600G (Integrated Graphics offloaded)
-- **RAM**: 16GB
-- **Model**: LFM2.5-1.2B-Q8_0
-
-| Scenario | GPU (ms) | CPU (ms) |
-|----------|----------|----------|
-| Single file analysis | 200-500 | 800-1500 |
-| 10 files (parallel) | 1000-2000 | 5000-8000 |
-| 50 files (batch) | 8000-12000 | 30000-50000 |
-
-**Conclusion**: El procesamiento por GPU es de 3 a 5 veces más rápido. Se recomienda implementar una **Estrategia Híbrida**: asignar agentes conversacionales ligeros (Tutor) a la CPU (usando hilos optimizados) y reservar la GPU (8GB VRAM) exclusivamente para el procesamiento asíncrono pesado del Agente Arquitecto.
-
-## Architecture Details
-
-### Why llama-server instead of Ollama?
-
-1. **Granular control**: Direct access to Vulkan layers, batching, KV cache
-2. **Continuous batching**: `-cb` flag enables parallel token processing
-3. **Quantized KV cache**: `--cache-type-k q8_0` saves 50% VRAM
-4. **No overhead**: Ollama adds abstraction layers
-
-### Why LFM2.5-1.2B?
-
-1. **Small but capable**: 1.2B params is perfect for code analysis
-2. **Fast**: Inference in 200-500ms on modest GPU
-3. **Instruct-tuned**: Follows JSON output format reliably
-4. **Resilient Context (32K Window)**: Built on Liquid Neural Network (LNN) hybrid architectures combining convolutions and grouped attention. It maintains extreme integrity across long-term sequences without suffering typical Transformer scale degradation.
-
-### Continuous Batching (`-cb`)
-
-Without `-cb`: Process one request â†’ generate all tokens â†’ next request
-
-With `-cb`: Interleave tokens from multiple requests â†’ 3-4x throughput
-
-Perfect for analyzing 10+ files simultaneously.
-
-## Next Steps
-
-1. **Enable AI**: Edit `ai-config.json` and start servers
-2. **Analyze project**: Run `OmnySys analyze <project>` and observe LLM usage
-3. **Tune performance**: Adjust `maxConcurrentAnalyses` based on your hardware
-4. **Customize prompts**: Modify `analysisTemplate` for domain-specific analysis
-
-## Reference
-
-- [AI_SETUP_GUIDE.md](../../docs/ai_architecture/AI_SETUP_GUIDE.md) - Detailed Vulkan architecture
-- [layer-b-semantic/README.md](../layer-b-semantic/README.md) - Semantic analysis overview
-- [Logs README](../../logs/README.md) - Logging and troubleshooting
-
+- `src/ai/BENCHMARKS.md`
+- `src/ai/FINDINGS.md`
