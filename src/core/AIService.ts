@@ -18,6 +18,14 @@ export class AIService {
     this.endpoint = url;
   }
 
+  private static wantsCanvasAction(prompt: string, blockId?: string): boolean {
+    const text = prompt.toLowerCase();
+    if (blockId && blockId !== "BACKGROUND_AGENT") {
+      return /\b(modifica|cambia|corrige|arregla|edita|refactoriza|optimiza|agrega|quita|renombra)\b/i.test(text);
+    }
+    return /\b(crea|crear|genera|generar|agrega|agregar|elimina|eliminar|borra|borrar|limpia|limpiar|vincula|conecta|link|modifica|edita|cambia|guarda|organiza|reordena)\b/i.test(text);
+  }
+
   /**
    * Envia una consulta a la IA incluyendo el contexto completo del mapa.
    */
@@ -39,7 +47,7 @@ export class AIService {
 
     const systemPrompt = builder.buildSystemPrompt();
 
-    const isHeavy = prompt.toLowerCase().match(/(crea|elimina|genera|vincula|link|haz|modifica|hazme|codigo|pseint|escribe|programa|algoritmo|funcion|proceso|matriz|vector|arreglo|estructura|optimiza|refactoriza|corrige)/i);
+    const isHeavy = this.wantsCanvasAction(prompt, blockId) || prompt.toLowerCase().match(/(codigo|pseint|escribe|programa|algoritmo|funcion|proceso|matriz|vector|arreglo|estructura)/i);
     const targetPort = isHeavy ? 8000 : 8001;
     const endpoints = targetPort === 8000
       ? ["http://127.0.0.1:8000/v1/chat/completions"]
@@ -89,36 +97,18 @@ export class AIService {
       const data = await response.json();
       const rawContent = data.choices?.[0]?.message?.content || "No obtuve respuesta del modelo.";
 
-      let finalMessage = rawContent;
-      let toolPayload: string | null = null;
-
-      try {
-        let jsonStr = rawContent;
-        jsonStr = jsonStr.replace(/```json\s*/gi, '').replace(/```\s*$/g, '').trim();
-
-        const firstBrace = jsonStr.indexOf('{');
-        const lastBrace = jsonStr.lastIndexOf('}');
-        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-          jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
-        }
-
-        const parsed = JSON.parse(jsonStr);
-        if (parsed.message) {
-          finalMessage = parsed.message;
-        }
-        if (parsed.tool_use) {
-          toolPayload = JSON.stringify({ tool_use: parsed.tool_use });
-        }
-      } catch {
-        // El modelo tambien puede responder texto plano.
-      }
-
       const { AIToolbox } = await import("./AIToolbox");
       AIToolbox.init();
+      const parsed = AIToolbox.parseToolUseResponse(rawContent);
+      let finalMessage = parsed.message || rawContent;
+      const toolCalls: AIResponse["toolCalls"] = [];
 
-      if (toolPayload) {
-        AIToolbox.parseAndExecute(toolPayload);
-        finalMessage += "\n*Accion ejecutada correctamente*";
+      if (parsed.toolUse) {
+        const success = AIToolbox.executeToolUse(parsed.toolUse);
+        toolCalls.push({ name: parsed.toolUse.action, args: parsed.toolUse.params || {} });
+        finalMessage += success
+          ? `\n*Accion ejecutada correctamente: ${parsed.toolUse.action}*`
+          : `\n*No pude ejecutar la accion: ${parsed.toolUse.action}*`;
       } else {
         finalMessage = AIToolbox.parseAndExecute(finalMessage);
       }
@@ -126,7 +116,8 @@ export class AIService {
       console.log(`[AIService] Respuesta recibida desde ${lastEndpoint}`);
 
       return {
-        message: finalMessage
+        message: finalMessage,
+        ...(toolCalls.length ? { toolCalls } : {})
       };
     } catch (error) {
       console.error("[AIService] Error al conectar con el modelo local:", error);

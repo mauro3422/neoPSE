@@ -5,11 +5,10 @@ import * as path from 'path';
 import { spawn, spawnSync, ChildProcess } from 'child_process';
 import { MetricDatabase } from '../src/ai/db/MetricDatabase';
 
-// ─── Config ────────────────────────────────────────────────────────────────────
+// Config
 
 const ROOT = path.resolve(import.meta.dirname ?? process.cwd(), '..');
 const LLAMA_ZIP = path.join(process.env.TEMP || '', 'neopse-llama-b9360', 'llama-b9360-bin-win-vulkan-x64.zip');
-const SERVER_SOURCE_DIR = path.join(ROOT, 'src', 'ai', 'server');
 const SERVER_RUNTIME_DIR = process.env.LLAMA_RUNTIME_DIR || 'D:\\ai-runtime\\llama-b9360';
 const MODELS_DIR = 'D:\\ai-models';
 const LLAMA_EXE = process.env.LLAMA_SERVER_BIN || path.join(SERVER_RUNTIME_DIR, 'llama.exe');
@@ -103,7 +102,7 @@ function ensureServerLauncher(): boolean {
   return false;
 }
 
-// ─── Server manager ────────────────────────────────────────────────────────────
+// Server manager
 
 const serverProcesses: ChildProcess[] = [];
 
@@ -152,7 +151,7 @@ async function waitForServer(port: number, timeoutMs = 120000): Promise<boolean>
 
 async function ensureServer(profile: Profile, maxWaitMs = 120000): Promise<boolean> {
   if (await checkServer(profile.port)) {
-    console.log(`✅ ${profile.label} ya corriendo en puerto ${profile.port}`);
+    console.log(`OK ${profile.label} ya corriendo en puerto ${profile.port}`);
     return true;
   }
   if (!ensureServerLauncher()) {
@@ -163,11 +162,11 @@ async function ensureServer(profile: Profile, maxWaitMs = 120000): Promise<boole
     console.log(`FAIL ${profile.label}: falta modelo en ${profile.model}`);
     return false;
   }
-  console.log(`🚀 Iniciando ${profile.label} en puerto ${profile.port}...`);
+  console.log(`Iniciando ${profile.label} en puerto ${profile.port}...`);
   startServer(profile);
   const ok = await waitForServer(profile.port, maxWaitMs);
-  if (ok) console.log(`✅ ${profile.label} listo`);
-  else console.log(`❌ ${profile.label} no respondió`);
+  if (ok) console.log(`OK ${profile.label} listo`);
+  else console.log(`FAIL ${profile.label} no respondio`);
   return ok;
 }
 
@@ -184,7 +183,7 @@ async function query(port: number, systemPrompt: string, userQuery: string, time
             { role: 'user', content: userQuery }
           ],
           temperature: 0.2,
-          max_tokens: 300,
+          max_tokens: 600,
           stream: false
         })
       });
@@ -221,15 +220,15 @@ async function queryWithTools(port: number, userQuery: string, tools: any[], tim
   return await res.json();
 }
 
-async function getMemInfo(): Promise<{ totalGB: number; freeGB: number }> {
+async function getMemInfo(): Promise<{ totalMemGB: number; freeMemGB: number }> {
   const os = await import('os');
   return {
-    totalGB: Math.round(os.totalmem() / 1024 / 1024 / 1024),
-    freeGB: Math.round(os.freemem() / 1024 / 1024 / 1024)
+    totalMemGB: Math.round(os.totalmem() / 1024 / 1024 / 1024),
+    freeMemGB: Math.round(os.freemem() / 1024 / 1024 / 1024)
   };
 }
 
-// ─── Mock context (for PromptBuilder tests) ─────────────────────────────────────
+// Mock context for PromptBuilder tests
 
 const mockContext: AIPackage = {
   globalNotes: ['Prueba de sistema'],
@@ -243,7 +242,7 @@ const mockContext: AIPackage = {
   ]
 };
 
-// ─── Test runner ────────────────────────────────────────────────────────────────
+// Test runner
 
 interface TestCase {
   name: string;
@@ -251,7 +250,9 @@ interface TestCase {
   type: 'assistant' | 'inline' | 'toolcall';
   category: 'logic' | 'syntax' | 'conversational' | 'toolcall';
   profile: keyof typeof PROFILES;
+  expectedResponse: 'assistant_text' | 'canvas_action_json' | 'native_tool_call';
   expectedKeywords?: string[];
+  expectedAction?: string;
   expectedTool?: string;
 }
 
@@ -304,12 +305,29 @@ function evaluateTextResponse(content: string, tc: TestCase): { success: boolean
   const flags: string[] = [];
   const json = parseJsonObject(content);
   const parsedMessage = typeof json.parsed?.message === 'string' ? json.parsed.message : '';
-  const textForChecks = parsedMessage || content;
+  const parsedPayload = json.ok ? JSON.stringify(json.parsed) : '';
+  const textForChecks = [parsedMessage, parsedPayload, content].filter(Boolean).join('\n');
 
   if (content.trim().length <= 10) flags.push('too_short');
-  if (!json.ok) flags.push('invalid_json');
-  if (json.ok && json.parsed?.tool_use && !json.parsed.tool_use.params) flags.push('tool_without_params');
   if (hasCorruptOutput(content)) flags.push('corrupt_output');
+
+  if (tc.expectedResponse === 'assistant_text') {
+    if (json.ok && json.parsed?.tool_use) flags.push('unexpected_tool_use');
+  }
+
+  if (tc.expectedResponse === 'canvas_action_json') {
+    if (!json.ok) {
+      flags.push('invalid_json');
+    } else {
+      const trimmed = content.trim();
+      const toolUse = json.parsed?.tool_use;
+      if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) flags.push('extraneous_text_around_json');
+      if (!json.parsed?.message || typeof json.parsed.message !== 'string') flags.push('missing_message');
+      if (!toolUse || typeof toolUse.action !== 'string') flags.push('missing_tool_use');
+      if (toolUse && !('params' in toolUse)) flags.push('tool_without_params');
+      if (tc.expectedAction && toolUse?.action !== tc.expectedAction) flags.push(`missing_action:${tc.expectedAction}`);
+    }
+  }
 
   for (const keyword of tc.expectedKeywords || []) {
     if (!textForChecks.toLowerCase().includes(keyword.toLowerCase())) {
@@ -319,7 +337,7 @@ function evaluateTextResponse(content: string, tc: TestCase): { success: boolean
 
   return {
     success: flags.length === 0,
-    isJsonValid: json.ok,
+    isJsonValid: tc.expectedResponse === 'assistant_text' ? !json.ok || !!json.parsed : json.ok,
     flags
   };
 }
@@ -399,7 +417,7 @@ async function runSingleTest(tc: TestCase): Promise<TestResult> {
   }
 }
 
-// ─── Benchmark engine ──────────────────────────────────────────────────────────
+// Benchmark engine
 
 class BenchmarkEngine {
   private tests: TestCase[] = [];
@@ -443,12 +461,12 @@ class BenchmarkEngine {
     const avgMs = Math.round(results.reduce((a, r) => a + r.durationMs, 0) / total);
     const toolRate = Math.round((results.filter(r => r.isToolCall).length / total) * 100);
 
-    console.log('\n══════════════════════════════════════');
-    console.log('📊 BENCHMARK SUMMARY');
-    console.log(`  ✅ ${passed}/${total} passed`);
-    console.log(`  ⏱  ${avgMs}ms avg`);
-    console.log(`  🛠  ${toolRate}% tool calls`);
-    console.log('══════════════════════════════════════\n');
+    console.log('\n======================================');
+    console.log('BENCHMARK SUMMARY');
+    console.log(`  ${passed}/${total} passed`);
+    console.log(`  ${avgMs}ms avg`);
+    console.log(`  ${toolRate}% tool calls`);
+    console.log('======================================\n');
   }
 
   private saveMetrics(results: TestResult[]): void {
@@ -476,14 +494,14 @@ class BenchmarkEngine {
           isJsonValid: r.isJsonValid
         });
       }
-      console.log(`💾 Saved to SQLite (snapshot ${snapshotId})`);
+      console.log(`Saved to SQLite (snapshot ${snapshotId})`);
     } catch (e) {
-      console.log(`⚠ SQLite save skipped: ${(e as Error).message}`);
+      console.log(`SQLite save skipped: ${(e as Error).message}`);
     }
   }
 }
 
-// ─── CLI ────────────────────────────────────────────────────────────────────────
+// CLI
 
 function saveBenchmarkResults(results: TestResult[]): void {
   fs.mkdirSync(BENCHMARK_RESULTS_DIR, { recursive: true });
@@ -500,16 +518,16 @@ async function main(): Promise<void> {
 
   if (mode === 'toolcall') {
     const port = Number(args[1]) || 8000;
-    console.log(`🧪 Testing tool calling on port ${port}...`);
+    console.log(`Testing tool calling on port ${port}...`);
     if (!await ensureServer(PROFILES.gemma)) { process.exit(1); }
     const result = await queryWithTools(port, 'Suma 15 y 27', [
       { type: 'function', function: { name: 'sumar', description: 'Suma dos numeros', parameters: { type: 'object', properties: { a: { type: 'number' }, b: { type: 'number' } }, required: ['a', 'b'] } } }
     ]);
     const msg = result.choices?.[0]?.message;
     if (msg?.tool_calls) {
-      console.log('✅ Tool call received:', JSON.stringify(msg.tool_calls, null, 2));
+      console.log('Tool call received:', JSON.stringify(msg.tool_calls, null, 2));
     } else {
-      console.log('⚠ No tool call. Response:', msg?.content);
+      console.log('No tool call. Response:', msg?.content);
     }
     killServers();
     return;
@@ -535,6 +553,8 @@ async function main(): Promise<void> {
       type: 'assistant',
       category: 'logic',
       profile: 'gemma',
+      expectedResponse: 'canvas_action_json',
+      expectedAction: 'create_block',
       expectedKeywords: ['bisiesto', 'Algoritmo']
     }, {
       name: 'Gemma-Inline-Editar',
@@ -542,6 +562,8 @@ async function main(): Promise<void> {
       type: 'inline',
       category: 'syntax',
       profile: 'gemma',
+      expectedResponse: 'canvas_action_json',
+      expectedAction: 'edit_block_content',
       expectedKeywords: ['Fin del Proceso']
     }, {
       name: 'Gemma-Conversacional',
@@ -549,6 +571,7 @@ async function main(): Promise<void> {
       type: 'assistant',
       category: 'conversational',
       profile: 'gemma',
+      expectedResponse: 'assistant_text',
       expectedKeywords: ['Mientras', 'Para']
     }, {
       name: 'WR-Seguridad-Conceptual',
@@ -556,6 +579,7 @@ async function main(): Promise<void> {
       type: 'assistant',
       category: 'conversational',
       profile: 'wrCpu',
+      expectedResponse: 'assistant_text',
       expectedKeywords: ['buffer', 'mitig']
     }, {
       name: 'ToolCall-Gemma',
@@ -563,6 +587,7 @@ async function main(): Promise<void> {
       type: 'toolcall',
       category: 'toolcall',
       profile: 'gemma',
+      expectedResponse: 'native_tool_call',
       expectedTool: 'sumar'
     }];
 
@@ -604,14 +629,14 @@ async function main(): Promise<void> {
   }
 
   console.log('Uso: npx tsx scripts/debugger-llm.ts [benchmark|toolcall|server] [profile]');
-  console.log('  benchmark       — ejecuta todos los tests');
-  console.log('  toolcall [port]  — prueba tool calling de Gemma');
-  console.log('  server <perfil>  — inicia server de un perfil');
+  console.log('  benchmark        - ejecuta todos los tests');
+  console.log('  toolcall [port]  - prueba tool calling de Gemma');
+  console.log('  server <perfil>  - inicia server de un perfil');
   console.log('  Perfiles: ' + Object.keys(PROFILES).join(', '));
 }
 
 main().catch(e => {
-  console.error('❌', e);
+  console.error('FAIL', e);
   killServers();
   process.exit(1);
 });

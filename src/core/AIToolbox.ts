@@ -12,6 +12,11 @@ export interface AITool {
   execute: (args: Record<string, any>) => void;
 }
 
+export interface AIToolUse {
+  action: string;
+  params?: Record<string, any>;
+}
+
 /**
  * Caja de Herramientas de IA: Ejecuta acciones en el lienzo solicitadas por el LLM.
  */
@@ -267,6 +272,66 @@ export class AIToolbox {
       }
     }
     return false;
+  }
+
+  public static executeToolUse(toolUse: AIToolUse): boolean {
+    if (!toolUse || typeof toolUse.action !== 'string') return false;
+    return this.executeTool(toolUse.action, toolUse.params || {});
+  }
+
+  private static extractJsonObject(content: string): string | null {
+    const cleaned = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+    const start = cleaned.indexOf('{');
+    if (start < 0) return null;
+
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let i = start; i < cleaned.length; i++) {
+      const char = cleaned[i];
+
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (char === '\\') {
+          escaped = true;
+        } else if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inString = true;
+      } else if (char === '{') {
+        depth++;
+      } else if (char === '}') {
+        depth--;
+        if (depth === 0) return cleaned.slice(start, i + 1);
+      }
+    }
+
+    return null;
+  }
+
+  public static parseToolUseResponse(response: string): { message?: string; toolUse?: AIToolUse; isJsonValid: boolean } {
+    const jsonObject = this.extractJsonObject(response);
+    if (!jsonObject) return { isJsonValid: false };
+
+    try {
+      const parsed = JSON.parse(jsonObject);
+      const toolUse = parsed?.tool_use && typeof parsed.tool_use.action === 'string'
+        ? { action: parsed.tool_use.action, params: parsed.tool_use.params }
+        : undefined;
+      return {
+        message: typeof parsed?.message === 'string' ? parsed.message : undefined,
+        toolUse,
+        isJsonValid: true
+      };
+    } catch {
+      return { isJsonValid: false };
+    }
   }
 
   public static parseAndExecute(response: string): string {
