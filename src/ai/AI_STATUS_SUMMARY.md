@@ -42,7 +42,12 @@ Smoke suite:
 
 - Command: `npm run test:ai`
 - Last known result: `5/5`
-- Latest snapshot: `18`
+- Latest snapshot: `24`
+
+Guardrail unit tests:
+
+- Command: `npm run test:guardrails`
+- Last known result: `12/12`
 
 Native tool calling:
 
@@ -74,6 +79,7 @@ npx tsx scripts\debugger-llm.ts historical --from 16 --limit 15 --profile gemma
 - `AIService` validates tool use before execution.
 - `PromptBuilder` separates lightweight tool awareness from executable tool schemas.
 - `AIService` and the benchmark runner now perform a structured repair pass when canvas-action JSON is malformed or incomplete.
+- Guardrails are covered by a small local unit test script that does not require starting the AI runtime.
 
 ## Current guardrails
 
@@ -111,6 +117,7 @@ Because Gemma E2B is small and quantized, occasional stochastic JSON issues are 
 
 ```powershell
 npm run build
+npm run test:guardrails
 npm run test:toolcall
 npm run test:ai
 npm run test:ai:historical

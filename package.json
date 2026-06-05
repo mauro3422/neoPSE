@@ -13,7 +13,8 @@
     "tauri": "tauri",
     "test:ai": "npx tsx scripts/debugger-llm.ts benchmark",
     "test:ai:historical": "npx tsx scripts/debugger-llm.ts historical",
-    "test:toolcall": "npx tsx scripts/debugger-llm.ts toolcall"
+    "test:toolcall": "npx tsx scripts/debugger-llm.ts toolcall",
+    "test:guardrails": "npx tsx scripts/test-ai-guardrails.ts"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
