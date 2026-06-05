@@ -58,8 +58,8 @@ Historical suite:
 
 - Command: `npm run test:ai:historical`
 - Last full Gemma run: `50/50`
-- Latest snapshot: `23`
-- Average duration: `14897ms`
+- Latest snapshot: `25`
+- Average duration: `13876ms`
 - Result files are written to `benchmarks/results/latest.json`.
 - SQLite snapshots are stored under `benchmarks/data/benchmarks.db`.
 
