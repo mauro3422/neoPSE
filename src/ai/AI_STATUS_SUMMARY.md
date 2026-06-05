@@ -40,6 +40,7 @@ Smoke suite:
 
 - Command: `npm run test:ai`
 - Last known result: `5/5`
+- Latest snapshot: `13`
 
 Native tool calling:
 
@@ -49,7 +50,9 @@ Native tool calling:
 Historical suite:
 
 - Command: `npm run test:ai:historical`
-- Last full Gemma run: `47/50`
+- Last full Gemma run: `48/50`
+- Latest snapshot: `14`
+- Average duration: `14671ms`
 - Result files are written to `benchmarks/results/latest.json`.
 - SQLite snapshots are stored under `benchmarks/data/benchmarks.db`.
 
@@ -82,10 +85,9 @@ These guardrails are production-facing. They protect the app even when the model
 
 ## Remaining known edge cases
 
-The latest full historical benchmark still found three model-level edge failures:
+The latest full historical benchmark still found two model-level edge failures:
 
 - `H36-Extraer-Modulo`: Gemma sometimes tries to create a placeholder block instead of asking for the missing code portion.
-- `H41-Codigo-Roto-Para`: Gemma sometimes corrects the loop without including `FinPara`.
 - `H49-Cancelar-Generacion`: Gemma sometimes maps "cancel generation" to `clear_workspace`.
 
 The new runtime guardrails are meant to prevent these from causing bad workspace mutations. The next useful step is to add a retry/repair pass so the model gets one chance to correct invalid or unsafe tool output.
