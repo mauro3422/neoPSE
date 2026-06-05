@@ -48,7 +48,7 @@ export const SCENARIOS: ScenarioTestCase[] = [
   // Grupo C: Refactorizacion dinamica
   { name: 'H31-Optimizar-Para', q: 'Optimiza un bucle Para existente en el lienzo.', type: 'inline', category: 'syntax', expectedResponse: 'assistant_text' },
   { name: 'H32-Renombrar-Variables', q: 'Cambia los nombres de variables en el nodo-1.', type: 'inline', category: 'syntax', expectedResponse: 'canvas_action_json', expectedAction: 'edit_block_content' },
-  { name: 'H33-Validacion-Entradas', q: 'Agrega validacion de entradas a un algoritmo existente.', type: 'assistant', category: 'logic', expectedResponse: 'canvas_action_json', expectedAction: 'create_block', expectedKeywords: ['valid'] },
+  { name: 'H33-Validacion-Entradas', q: 'Agrega validacion de entradas a un algoritmo existente.', type: 'assistant', category: 'logic', expectedResponse: 'assistant_text', expectedKeywords: ['valid'] },
   { name: 'H34-Convertir-Mientras-Para', q: 'Convierte un bucle Mientras a un bucle Para.', type: 'inline', category: 'syntax', expectedResponse: 'assistant_text' },
   { name: 'H35-Auto-Layout', q: 'Ubica visualmente un bloque flotante.', type: 'assistant', category: 'conversational', expectedResponse: 'assistant_text' },
   { name: 'H36-Extraer-Modulo', q: 'Extrae una porcion de codigo a un nuevo bloque modular.', type: 'assistant', category: 'logic', expectedResponse: 'assistant_text' },

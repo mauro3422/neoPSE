@@ -1,8 +1,13 @@
 import { AIPackage } from "./ContextPacker";
 import prompts from "../ai/prompts-ide.json";
 
+export type AIResponseMode = "tool_awareness" | "canvas_action_json";
+
 export abstract class BasePrompt {
-  constructor(protected context: AIPackage) { }
+  constructor(
+    protected context: AIPackage,
+    protected responseMode: AIResponseMode = "tool_awareness"
+  ) { }
 
   /**
    * Construye las directrices comunes de comportamiento pedagógico.
@@ -12,7 +17,9 @@ export abstract class BasePrompt {
   }
 
   protected getToolUseGuidelines(): string {
-    return prompts.toolUseGuidelines;
+    return this.responseMode === "canvas_action_json"
+      ? `${prompts.toolAwarenessGuidelines}\n\n${prompts.toolUseGuidelines}`
+      : prompts.toolAwarenessGuidelines;
   }
 
   /**
@@ -49,8 +56,8 @@ export class AssistantPrompt extends BasePrompt {
 export class InlinePrompt extends BasePrompt {
   private targetBlockId: string;
 
-  constructor(context: AIPackage, targetBlockId: string) {
-    super(context);
+  constructor(context: AIPackage, targetBlockId: string, responseMode: AIResponseMode = "tool_awareness") {
+    super(context, responseMode);
     this.targetBlockId = targetBlockId;
   }
 

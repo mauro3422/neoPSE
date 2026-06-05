@@ -79,6 +79,47 @@ export class AIService {
     return { ok: true, toolUse };
   }
 
+  private static async repairCanvasResponse(endpoint: string, systemPrompt: string, prompt: string, badResponse: string): Promise<string | null> {
+    try {
+      const repairPrompt = [
+        "Repair the assistant output for NeoPSE.",
+        "",
+        "Return the corrected final answer only.",
+        "If the user request can be executed with the available workspace context, return exactly one valid JSON object with message and tool_use.",
+        "If the request cannot be executed safely because required information is missing, return plain text only and do not include JSON or tool_use.",
+        "Never output an empty tool_use object.",
+        "Escape all quotes and newlines inside JSON strings.",
+        "",
+        `User request: ${prompt}`,
+        "",
+        "Invalid previous output:",
+        badResponse
+      ].join("\n");
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(60000),
+        body: JSON.stringify({
+          model: "fallback-model",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: repairPrompt }
+          ],
+          temperature: 0.1,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!response.ok) return null;
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || null;
+    } catch (error) {
+      console.warn("[AIService] No pude reparar la respuesta estructurada:", error);
+      return null;
+    }
+  }
+
   /**
    * Envia una consulta a la IA incluyendo el contexto completo del mapa.
    */
@@ -89,18 +130,19 @@ export class AIService {
     history?: { role: 'user' | 'ai', content: string }[]
   ): Promise<AIResponse> {
     const { AssistantPrompt, InlinePrompt, BackgroundSynthesizerPrompt } = await import("./PromptBuilder");
+    const requiresCanvasJson = this.wantsCanvasAction(prompt, blockId);
+    const responseMode = requiresCanvasJson ? "canvas_action_json" : "tool_awareness";
     let builder;
     if (blockId === "BACKGROUND_AGENT") {
       builder = new BackgroundSynthesizerPrompt(context);
     } else if (blockId) {
-      builder = new InlinePrompt(context, blockId);
+      builder = new InlinePrompt(context, blockId, responseMode);
     } else {
-      builder = new AssistantPrompt(context);
+      builder = new AssistantPrompt(context, responseMode);
     }
 
     const systemPrompt = builder.buildSystemPrompt();
 
-    const requiresCanvasJson = this.wantsCanvasAction(prompt, blockId);
     const isHeavy = requiresCanvasJson || prompt.toLowerCase().match(/(codigo|pseint|escribe|programa|algoritmo|funcion|proceso|matriz|vector|arreglo|estructura)/i);
     const targetPort = isHeavy ? 8000 : 8001;
     const endpoints = targetPort === 8000
@@ -150,11 +192,21 @@ export class AIService {
       }
 
       const data = await response.json();
-      const rawContent = data.choices?.[0]?.message?.content || "No obtuve respuesta del modelo.";
+      let rawContent = data.choices?.[0]?.message?.content || "No obtuve respuesta del modelo.";
 
       const { AIToolbox } = await import("./AIToolbox");
       AIToolbox.init();
-      const parsed = AIToolbox.parseToolUseResponse(rawContent);
+      let parsed = AIToolbox.parseToolUseResponse(rawContent);
+      if (requiresCanvasJson && (!parsed.isJsonValid || !parsed.toolUse)) {
+        const repaired = await this.repairCanvasResponse(lastEndpoint, systemPrompt, prompt, rawContent);
+        if (repaired) {
+          const repairedParsed = AIToolbox.parseToolUseResponse(repaired);
+          if (repairedParsed.isJsonValid || repaired.trim().length > 0) {
+            rawContent = repaired;
+            parsed = repairedParsed;
+          }
+        }
+      }
       let finalMessage = parsed.message || rawContent;
       const toolCalls: AIResponse["toolCalls"] = [];
 

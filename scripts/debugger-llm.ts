@@ -363,6 +363,34 @@ function evaluateToolCall(msg: any, tc: TestCase): { success: boolean; flags: st
   return { success: flags.length === 0, flags };
 }
 
+function shouldRepairCanvasJson(quality: { flags: string[] }, tc: TestCase): boolean {
+  if (tc.expectedResponse !== 'canvas_action_json') return false;
+  return quality.flags.some(flag =>
+    flag === 'invalid_json' ||
+    flag === 'missing_tool_use' ||
+    flag === 'tool_without_params' ||
+    flag.startsWith('missing_action:')
+  );
+}
+
+function buildRepairPrompt(tc: TestCase, badResponse: string): string {
+  return [
+    'Repair the assistant output for NeoPSE.',
+    '',
+    'Return the corrected final answer only.',
+    'If the user request can be executed with the available workspace context, return exactly one valid JSON object with message and tool_use.',
+    'If the request cannot be executed safely because required information is missing, return plain text only and do not include JSON or tool_use.',
+    'Never output an empty tool_use object.',
+    'Escape all quotes and newlines inside JSON strings.',
+    '',
+    `User request: ${tc.query}`,
+    `Expected action when executable: ${tc.expectedAction || 'any valid canvas action'}`,
+    '',
+    'Invalid previous output:',
+    badResponse
+  ].join('\n');
+}
+
 async function runSingleTest(tc: TestCase): Promise<TestResult> {
   const profile = PROFILES[tc.profile];
   const start = performance.now();
@@ -393,14 +421,25 @@ async function runSingleTest(tc: TestCase): Promise<TestResult> {
       };
     }
 
+    const responseMode = tc.expectedResponse === 'canvas_action_json' ? 'canvas_action_json' : 'tool_awareness';
     const builder = tc.type === 'inline'
-      ? new InlinePrompt(mockContext, 'node-1')
-      : new AssistantPrompt(mockContext);
+      ? new InlinePrompt(mockContext, 'node-1', responseMode)
+      : new AssistantPrompt(mockContext, responseMode);
     const systemPrompt = builder.buildSystemPrompt();
     const data = await query(profile.port, systemPrompt, tc.query, tc.maxTokens, tc.expectedResponse === 'canvas_action_json');
     const elapsed = performance.now() - start;
-    const content = data.choices?.[0]?.message?.content ?? '';
-    const quality = evaluateTextResponse(content, tc);
+    let content = data.choices?.[0]?.message?.content ?? '';
+    let quality = evaluateTextResponse(content, tc);
+
+    if (shouldRepairCanvasJson(quality, tc)) {
+      const repairData = await query(profile.port, systemPrompt, buildRepairPrompt(tc, content), tc.maxTokens, true);
+      const repairedContent = repairData.choices?.[0]?.message?.content ?? '';
+      const repairedQuality = evaluateTextResponse(repairedContent, tc);
+      if (repairedQuality.success || repairedQuality.flags.length <= quality.flags.length) {
+        content = repairedContent;
+        quality = repairedQuality;
+      }
+    }
 
     return {
       name: tc.name, type: tc.type, category: tc.category, profile: tc.profile,

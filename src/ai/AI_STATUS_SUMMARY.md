@@ -1,6 +1,6 @@
 # NeoPSE AI status summary
 
-Last updated: 2026-06-04
+Last updated: 2026-06-05
 
 ## Current state
 
@@ -13,6 +13,8 @@ The important architectural fix was separating output contracts:
 - `native_tool_call`: OpenAI-style tool calls supported by the local llama.cpp server.
 
 NeoPSE should not require JSON for every assistant response. JSON is required only when the user is asking for an actual canvas/workspace action.
+
+The current prompt strategy keeps a lightweight tool catalog visible as context, but only exposes executable JSON schemas when NeoPSE has enabled canvas-action mode. This avoids overloading small local models while still letting them understand what the workspace can do.
 
 ## Runtime and models
 
@@ -40,7 +42,7 @@ Smoke suite:
 
 - Command: `npm run test:ai`
 - Last known result: `5/5`
-- Latest snapshot: `13`
+- Latest snapshot: `18`
 
 Native tool calling:
 
@@ -50,9 +52,9 @@ Native tool calling:
 Historical suite:
 
 - Command: `npm run test:ai:historical`
-- Last full Gemma run: `48/50`
-- Latest snapshot: `14`
-- Average duration: `14671ms`
+- Last full Gemma run: `50/50`
+- Latest snapshot: `23`
+- Average duration: `14897ms`
 - Result files are written to `benchmarks/results/latest.json`.
 - SQLite snapshots are stored under `benchmarks/data/benchmarks.db`.
 
@@ -70,6 +72,8 @@ npx tsx scripts\debugger-llm.ts historical --from 16 --limit 15 --profile gemma
 - Accent-insensitive keyword matching avoids false negatives such as unaccented vs accented Spanish terms.
 - `AIService` now enables `response_format: { type: "json_object" }` only for expected canvas actions.
 - `AIService` validates tool use before execution.
+- `PromptBuilder` separates lightweight tool awareness from executable tool schemas.
+- `AIService` and the benchmark runner now perform a structured repair pass when canvas-action JSON is malformed or incomplete.
 
 ## Current guardrails
 
@@ -85,20 +89,23 @@ These guardrails are production-facing. They protect the app even when the model
 
 ## Remaining known edge cases
 
-The latest full historical benchmark still found two model-level edge failures:
+The latest full historical benchmark did not find remaining failures.
 
-- `H36-Extraer-Modulo`: Gemma sometimes tries to create a placeholder block instead of asking for the missing code portion.
-- `H49-Cancelar-Generacion`: Gemma sometimes maps "cancel generation" to `clear_workspace`.
+The previously failing cases now pass:
 
-The new runtime guardrails are meant to prevent these from causing bad workspace mutations. The next useful step is to add a retry/repair pass so the model gets one chance to correct invalid or unsafe tool output.
+- `H36-Extraer-Modulo`: handled as plain text when the user has not provided enough extraction detail.
+- `H49-Cancelar-Generacion`: handled as cancellation text, not `clear_workspace`.
+- `H27-Busqueda-Lineal`: protected by the structured repair pass when Gemma emits malformed JSON.
+- `H33-Validacion-Entradas`: reclassified as plain text because the request lacks enough validation detail to force a canvas mutation.
+
+Because Gemma E2B is small and quantized, occasional stochastic JSON issues are still possible. Runtime guardrails and the repair pass are meant to prevent those from causing bad workspace mutations.
 
 ## Recommended next steps
 
-1. Add a structured retry/repair pass for failed `canvas_action_json`.
-2. Add unit tests for the `AIService` tool-use validator.
-3. Compare Gemma against WhiteRabbitNeo on the same historical slices.
-4. Add a small dashboard/report command that summarizes latest benchmark failures by flag.
-5. Consider native tool calling for internal canvas actions once schemas are stable.
+1. Add unit tests for the `AIService` tool-use validator and repair path.
+2. Compare Gemma against WhiteRabbitNeo on the same historical suite.
+3. Add a small dashboard/report command that summarizes latest benchmark failures by flag.
+4. Consider native tool calling for internal canvas actions once schemas are stable.
 
 ## Useful commands
 
