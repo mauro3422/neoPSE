@@ -4,6 +4,27 @@ Date: 2026-06-06
 
 This note records the OpenClaw/Gemma local-agent setup used alongside NeoPSE. It is not Omni system documentation and should not be treated as NeoPSE core runtime behavior.
 
+## Boundary With NeoPSE
+
+OpenClaw is not a NeoPSE subsystem. It is an external Gemma behavior lab and personal-agent experiment.
+
+Allowed overlap:
+
+```text
+Shared low-level llama.cpp runtime/model when useful
+Manual review of OpenClaw logs
+Manual extraction of model-limit findings into NeoPSE benchmarks/docs
+```
+
+Not allowed by default:
+
+```text
+Automatic NeoPSE reads from OpenClaw memory
+Automatic OpenClaw actions inside NeoPSE canvas
+Shared prompts or tool schemas
+Treating OpenClaw skills as NeoPSE tools
+```
+
 ## Purpose
 
 We configured OpenClaw as a separate local assistant that can keep running even when NeoPSE is not open. The current goal is to validate Gemma 4 as a personal local agent for chat, task support, memory curation, PDF/work extraction, and offline study help.
@@ -14,12 +35,14 @@ We configured OpenClaw as a separate local assistant that can keep running even 
 OpenClaw: 2026.6.1
 Gateway: ws://127.0.0.1:18789
 Dashboard: http://127.0.0.1:18789/
-Model endpoint: http://127.0.0.1:8003/v1
+Model endpoint: http://127.0.0.1:8007/v1
 Runtime: D:\ai-runtime\llama-b9360\llama.exe server
 Model: D:\ai-models\gemma-4-E2B_q4_0-it.gguf
+MMProj: D:\ai-models\gemma-4-E2B-it-mmproj.gguf
 Context: 131072
 Max output in OpenClaw: 2048
-Tool profile: coding
+Tool profile: full
+Reasoning: on, budget 512
 Web search provider: duckduckgo
 ```
 
@@ -59,9 +82,13 @@ Package commands:
 ```powershell
 npm run agent:start
 npm run agent:start:thinking
+npm run agent:start:multimodal
+npm run agent:start:multimodal:thinking
 npm run agent:stop
 npm run agent:gemma
 npm run agent:gemma:thinking
+npm run agent:gemma:multimodal
+npm run agent:gemma:multimodal:test
 npm run agent:gemma:health
 npm run agent:gemma:stop
 npm run agent:gateway
@@ -87,6 +114,8 @@ Thinking mode starts the same GGUF with:
 Thinking is not a second model file. It is a llama.cpp/Gemma runtime mode using the model chat template and a reasoning budget. It improves some planning/tool-decision behavior, but increases latency because hidden reasoning tokens are generated before the final answer.
 
 Do not expose normal and thinking as two simultaneous OpenClaw dropdown choices unless we deliberately run two llama.cpp servers. Two servers would duplicate model memory/VRAM use.
+
+After Mauro's 2026-06-06 manual OpenClaw tests, thinking is preferred when the agent must inspect tools/skills, follow multi-step Windows instructions, or explain OpenClaw commands. The model was too willing to answer from generic assumptions without checking the available registry.
 
 ## Benchmarks Observed
 
@@ -201,6 +230,26 @@ Not safe yet for broad filesystem/email/calendar automation
 
 Current stance: Gemma 4 E2B QAT is good enough for a local personal assistant and study helper when constrained to a workspace and validated. It should not be trusted blindly for irreversible actions.
 
+## Lessons From Manual OpenClaw Tests
+
+Observed failure on 2026-06-06:
+
+```text
+The model guessed tool names and skill behavior.
+The model tried Linux syntax (`ls -la`) in PowerShell.
+The model did not know that slash commands come from the Gateway/skills registry.
+The model repeatedly claimed it could not inspect files even after full profile was enabled.
+```
+
+Persistent guidance was added to the OpenClaw workspace `AGENTS.md`:
+
+```text
+Use PowerShell on Windows.
+Use openclaw skills list / openclaw skills info / openclaw docs before explaining skills or slash commands.
+Do not guess tool availability.
+Report exact errors and try the Windows/OpenClaw-native equivalent.
+```
+
 ## Text-Only / Mobile Model Lead
 
 Google's Gemma 4 QAT mobile/text-only direction is promising for a future memory cell. Official notes mention E2B text-only deployment under 1 GB memory when unused modalities and PLE are omitted. This is probably not the same as the current GGUF path.
@@ -229,13 +278,23 @@ Approx size: 0.919 GB
 
 Google's Gemma 4 model card lists E2B as text/image/audio input with text output. Video understanding is handled as sampled frames, not native video generation.
 
-The stable OpenClaw server remains text-only on port `8003`. Multimodal should be tested separately on port `8007`:
+The stable text-only server remains on port `8003`. Multimodal runs on port `8007` and can be used as the active OpenClaw model when explicitly started:
 
 ```powershell
 npm run agent:gemma:multimodal
+npm run agent:start:multimodal:thinking
 ```
 
 Expected capabilities are text output from text/image/audio/video-frame inputs. It is not image, video, or audio generation.
+
+When multimodal mode is active, OpenClaw config should point to:
+
+```text
+baseUrl: http://127.0.0.1:8007/v1
+input: text, image, audio
+contextWindow: 131072
+reasoning: true when started with npm run agent:start:multimodal:thinking
+```
 
 Local smoke test results:
 
@@ -248,6 +307,8 @@ Audio fixture: benchmarks/fixtures/multimodal-test.wav
 Prompt: Transcribe original language.
 Result: The model accepted WAV input and produced a Spanish transcription with minor wording error.
 ```
+
+With thinking enabled, short `max_tokens` values can produce empty final content because hidden reasoning consumes the output budget. The multimodal smoke test uses a larger output budget for this reason.
 
 Run:
 

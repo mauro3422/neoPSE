@@ -51,7 +51,7 @@ $imageResult = Invoke-ChatCompletion @{
     }
   )
   temperature = 0.2
-  max_tokens = 120
+  max_tokens = 768
   stream = $false
 }
 
@@ -68,7 +68,7 @@ $audioResult = Invoke-ChatCompletion @{
     }
   )
   temperature = 0.2
-  max_tokens = 120
+  max_tokens = 768
   stream = $false
 }
 

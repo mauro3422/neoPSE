@@ -21,6 +21,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/start
 ```powershell
 npm run agent:start
 npm run agent:start:thinking
+npm run agent:start:multimodal
+npm run agent:start:multimodal:thinking
 npm run agent:stop
 
 npm run agent:gemma
@@ -91,11 +93,20 @@ Run the local image/audio smoke test:
 npm run agent:gemma:multimodal:test
 ```
 
-This uses a smaller default context (`8192`) so tests do not compete too much with the stable OpenClaw agent. Stop it with:
+The standalone `agent:gemma:multimodal` test server uses a smaller default context (`8192`) so smoke tests do not compete too much with the stable OpenClaw agent. Stop it with:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/stop-gemma-qat.ps1 -Port 8007
 ```
+
+To use multimodal as the active OpenClaw model, run:
+
+```powershell
+npm run agent:start:multimodal:thinking
+```
+
+This starts port `8007`, configures OpenClaw input as `text,image,audio`, enables thinking with budget `512`, and keeps the setup separate from NeoPSE.
+The active OpenClaw multimodal launcher uses the full Gemma context (`131072`) after local validation on this PC.
 
 Confirmed local results:
 

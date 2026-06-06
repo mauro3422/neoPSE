@@ -3,6 +3,9 @@ param(
   [int]$MaxTokens = 2048,
   [int]$ModelPort = 8003,
   [int]$GatewayPort = 18789,
+  [ValidateSet("minimal", "coding", "messaging", "full")]
+  [string]$ToolProfile = "full",
+  [switch]$Multimodal,
   [ValidateSet("off", "auto", "on")]
   [string]$Reasoning = "off"
 )
@@ -13,10 +16,19 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";
 $openclaw = (Get-Command openclaw.cmd -ErrorAction Stop).Source
 $baseUrl = "http://127.0.0.1:$ModelPort/v1"
 $reasoningEnabled = $Reasoning -ne "off"
+$modelInput = if ($Multimodal) { @("text", "image", "audio") } else { @("text") }
 $modelName = if ($reasoningEnabled) {
-  "Gemma 4 E2B QAT local thinking via llama.cpp"
+  if ($Multimodal) {
+    "Gemma 4 E2B QAT local multimodal thinking via llama.cpp"
+  } else {
+    "Gemma 4 E2B QAT local thinking via llama.cpp"
+  }
 } else {
-  "Gemma 4 E2B QAT local via llama.cpp"
+  if ($Multimodal) {
+    "Gemma 4 E2B QAT local multimodal via llama.cpp"
+  } else {
+    "Gemma 4 E2B QAT local via llama.cpp"
+  }
 }
 
 $patch = @{
@@ -59,7 +71,7 @@ $patch = @{
             name = $modelName
             contextWindow = $ContextSize
             maxTokens = $MaxTokens
-            input = @("text")
+            input = $modelInput
             cost = @{
               input = 0
               output = 0
@@ -68,7 +80,7 @@ $patch = @{
             }
             reasoning = $reasoningEnabled
             compat = @{
-              requiresStringContent = $true
+              requiresStringContent = -not $Multimodal
             }
           }
         )
@@ -76,6 +88,7 @@ $patch = @{
     }
   }
   tools = @{
+    profile = $ToolProfile
     web = @{
       search = @{
         enabled = $true

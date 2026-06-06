@@ -18,6 +18,8 @@
     "agent:gateway:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/stop-gateway.ps1",
     "agent:start": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/start-all.ps1",
     "agent:start:thinking": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/start-all.ps1 -Reasoning on -ReasoningBudget 512",
+    "agent:start:multimodal": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/start-all.ps1 -Multimodal -ContextSize 131072",
+    "agent:start:multimodal:thinking": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/start-all.ps1 -Multimodal -ContextSize 131072 -Reasoning on -ReasoningBudget 512",
     "agent:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/stop-all.ps1",
     "agent:autostart:install": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/install-autostart.ps1",
     "agent:autostart:uninstall": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/uninstall-autostart.ps1",
