@@ -67,6 +67,30 @@ $patch = @{
       }
     }
   }
+  tools = @{
+    web = @{
+      search = @{
+        enabled = $true
+        provider = "duckduckgo"
+        maxResults = 5
+        timeoutSeconds = 30
+        cacheTtlMinutes = 15
+      }
+    }
+  }
+  plugins = @{
+    entries = @{
+      duckduckgo = @{
+        enabled = $true
+        config = @{
+          webSearch = @{
+            region = "ar-es"
+            safeSearch = "moderate"
+          }
+        }
+      }
+    }
+  }
 } | ConvertTo-Json -Depth 12
 
 $patch | & $openclaw config patch --stdin

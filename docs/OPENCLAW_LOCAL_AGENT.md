@@ -84,6 +84,14 @@ contextWindow: 131072
 maxTokens: 2048
 ```
 
+Web search is configured to use DuckDuckGo:
+
+```text
+tools.web.search.provider: duckduckgo
+```
+
+This avoids the default/auto Kimi provider path, which requires `KIMI_API_KEY` or `MOONSHOT_API_KEY`.
+
 This setup is intentionally text-only for now. Do not grant mail/calendar/filesystem automation until the base chat and tool behavior is stable.
 
 ## Next Tests
