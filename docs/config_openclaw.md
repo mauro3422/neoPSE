@@ -42,6 +42,7 @@ MMProj: D:\ai-models\gemma-4-E2B-it-mmproj.gguf
 Context: 131072
 Max output in OpenClaw: 2048
 Tool profile: full
+Tool deny: agents_list
 Reasoning: on, budget 512
 Web search provider: duckduckgo
 ```
@@ -246,8 +247,25 @@ Persistent guidance was added to the OpenClaw workspace `AGENTS.md`:
 ```text
 Use PowerShell on Windows.
 Use openclaw skills list / openclaw skills info / openclaw docs before explaining skills or slash commands.
+Use the injected Skills list first for simple skill availability questions.
+Do not use agents_list or directory listing tools to discover skills.
 Do not guess tool availability.
 Report exact errors and try the Windows/OpenClaw-native equivalent.
+```
+
+Follow-up benchmark finding:
+
+```text
+Before denying agents_list:
+  OpenClaw agent looped agents_list until timeout.
+
+After denying agents_list:
+  The same skill-discovery question completed.
+  thinking=off: completed, but could still overuse directory tools on vague "averigua" wording.
+  thinking=medium: completed with one exec call, but was slower.
+
+Best prompt style for this small local model:
+  "Use the injected Skills list first. Do not use tools if the answer is already in that list."
 ```
 
 ## Text-Only / Mobile Model Lead

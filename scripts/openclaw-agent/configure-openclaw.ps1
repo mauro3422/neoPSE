@@ -5,6 +5,7 @@ param(
   [int]$GatewayPort = 18789,
   [ValidateSet("minimal", "coding", "messaging", "full")]
   [string]$ToolProfile = "full",
+  [string[]]$ToolDeny = @("agents_list"),
   [switch]$Multimodal,
   [ValidateSet("off", "auto", "on")]
   [string]$Reasoning = "off"
@@ -89,6 +90,7 @@ $patch = @{
   }
   tools = @{
     profile = $ToolProfile
+    deny = $ToolDeny
     web = @{
       search = @{
         enabled = $true

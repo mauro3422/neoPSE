@@ -149,10 +149,13 @@ OpenClaw should point to:
 
 ```text
 provider: local
-baseUrl: http://127.0.0.1:8003/v1
+baseUrl: http://127.0.0.1:8007/v1
 model: gemma-4-E2B_q4_0-it.gguf
 contextWindow: 131072
 maxTokens: 2048
+input: text, image, audio
+reasoning: true
+tools.deny: agents_list
 ```
 
 Web search is configured to use DuckDuckGo:
@@ -163,7 +166,9 @@ tools.web.search.provider: duckduckgo
 
 This avoids the default/auto Kimi provider path, which requires `KIMI_API_KEY` or `MOONSHOT_API_KEY`.
 
-This setup is intentionally text-only for now. Do not grant mail/calendar/filesystem automation until the base chat and tool behavior is stable.
+This setup is intentionally local and workspace-scoped for now. Do not grant mail/calendar/broad filesystem automation until the base chat and tool behavior is stable.
+
+`agents_list` is denied in this setup because Gemma 4 E2B repeatedly confused it with skill discovery and looped until timeout. Skill availability should be answered from the injected Skills list first, or verified with `openclaw skills ...` via PowerShell when fresh evidence is explicitly requested.
 
 ## Next Tests
 
