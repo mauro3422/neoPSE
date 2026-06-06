@@ -30,6 +30,26 @@ npm run agent:gateway
 npm run agent:gateway:stop
 ```
 
+## Autostart
+
+OpenClaw's own service installer starts the Gateway, but this setup also needs the external `llama.cpp` model server. Use the NeoPSE startup wrapper instead:
+
+```powershell
+npm run agent:autostart:install
+```
+
+This adds a user-login launcher to the Windows Startup folder. It runs:
+
+```powershell
+scripts/openclaw-agent/start-all.ps1 -ContextSize 131072
+```
+
+Remove it with:
+
+```powershell
+npm run agent:autostart:uninstall
+```
+
 If OpenClaw config is reset, re-apply the local provider with:
 
 ```powershell
