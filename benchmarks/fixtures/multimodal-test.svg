@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160">
+  <rect width="240" height="160" fill="#ffffff"/>
+  <circle cx="70" cy="80" r="38" fill="#e53935"/>
+  <rect x="135" y="45" width="70" height="70" fill="#1e88e5"/>
+  <text x="120" y="145" font-family="Arial" font-size="18" text-anchor="middle" fill="#111111">red circle blue square</text>
+</svg>

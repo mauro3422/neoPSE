@@ -10,6 +10,8 @@
     "dev:wr": "powershell -NoProfile -ExecutionPolicy Bypass -File src/ai/scripts/start-ai-server.ps1 wr",
     "agent:gemma": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/start-gemma-qat.ps1",
     "agent:gemma:thinking": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/start-gemma-qat.ps1 -Reasoning on -ReasoningBudget 512",
+    "agent:gemma:multimodal": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/start-gemma-multimodal.ps1",
+    "agent:gemma:multimodal:test": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/test-gemma-multimodal.ps1",
     "agent:gemma:health": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/health.ps1",
     "agent:gemma:stop": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/stop-gemma-qat.ps1",
     "agent:gateway": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/start-gateway.ps1",

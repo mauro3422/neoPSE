@@ -25,6 +25,7 @@ npm run agent:stop
 
 npm run agent:gemma
 npm run agent:gemma:thinking
+npm run agent:gemma:multimodal
 npm run agent:gemma:health
 npm run agent:gemma:stop
 
@@ -68,6 +69,39 @@ Benchmark comparison:
 
 ```powershell
 npx tsx scripts/debugger-llm.ts compare --profiles gemmaQat,gemmaQatThink --limit 10
+```
+
+## Multimodal Test Server
+
+The stable OpenClaw server on port `8003` is text-only. Gemma 4 E2B QAT can accept image/audio inputs when the official multimodal projector is loaded:
+
+```text
+D:\ai-models\gemma-4-E2B-it-mmproj.gguf
+```
+
+Start an experimental multimodal server on port `8007`:
+
+```powershell
+npm run agent:gemma:multimodal
+```
+
+Run the local image/audio smoke test:
+
+```powershell
+npm run agent:gemma:multimodal:test
+```
+
+This uses a smaller default context (`8192`) so tests do not compete too much with the stable OpenClaw agent. Stop it with:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/stop-gemma-qat.ps1 -Port 8007
+```
+
+Confirmed local results:
+
+```text
+Image input: correctly described a red circle and blue square.
+Audio input: accepted WAV input and transcribed the spoken Spanish phrase with minor error.
 ```
 
 Remove it with:

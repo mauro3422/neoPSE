@@ -215,6 +215,47 @@ Future memory cell:
   Gemma 4 E2B mobile/text-only via LiteRT-LM, Transformers, Transformers.js, or another supported runtime
 ```
 
+## Multimodal Add-On
+
+The official Google QAT GGUF repo also provides the multimodal projector:
+
+```text
+Repo: google/gemma-4-E2B-it-qat-q4_0-gguf
+URL: https://huggingface.co/google/gemma-4-E2B-it-qat-q4_0-gguf
+File: gemma-4-E2B-it-mmproj.gguf
+Local path: D:\ai-models\gemma-4-E2B-it-mmproj.gguf
+Approx size: 0.919 GB
+```
+
+Google's Gemma 4 model card lists E2B as text/image/audio input with text output. Video understanding is handled as sampled frames, not native video generation.
+
+The stable OpenClaw server remains text-only on port `8003`. Multimodal should be tested separately on port `8007`:
+
+```powershell
+npm run agent:gemma:multimodal
+```
+
+Expected capabilities are text output from text/image/audio/video-frame inputs. It is not image, video, or audio generation.
+
+Local smoke test results:
+
+```text
+Image fixture: benchmarks/fixtures/multimodal-test.png
+Prompt: Describe colors and shapes.
+Result: The model identified a red circle and blue square.
+
+Audio fixture: benchmarks/fixtures/multimodal-test.wav
+Prompt: Transcribe original language.
+Result: The model accepted WAV input and produced a Spanish transcription with minor wording error.
+```
+
+Run:
+
+```powershell
+npm run agent:gemma:multimodal
+npm run agent:gemma:multimodal:test
+```
+
 Use the memory cell for:
 
 ```text
