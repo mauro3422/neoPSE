@@ -1,6 +1,11 @@
 param(
   [int]$ContextSize = 131072,
   [int]$Port = 8003,
+  [ValidateSet("off", "auto", "on")]
+  [string]$Reasoning = "off",
+  [int]$ReasoningBudget = 0,
+  [ValidateSet("auto", "none", "deepseek", "deepseek-legacy")]
+  [string]$ReasoningFormat = "auto",
   [switch]$Foreground
 )
 
@@ -59,8 +64,9 @@ $args = $baseArgs + @(
   "--parallel", "1",
   "-cb",
   "--temp", "0.2",
-  "--reasoning", "off",
-  "--reasoning-budget", "0",
+  "--reasoning", $Reasoning,
+  "--reasoning-budget", "$ReasoningBudget",
+  "--reasoning-format", $ReasoningFormat,
   "--cache-type-k", "q8_0",
   "--cache-type-v", "q8_0",
   "--cache-ram", "0",
@@ -84,4 +90,5 @@ $proc = Start-Process -FilePath $serverBin `
 Write-Output "Started Gemma QAT for OpenClaw on http://127.0.0.1:$Port/v1"
 Write-Output "PID: $($proc.Id)"
 Write-Output "Context: $ContextSize"
+Write-Output "Reasoning: $Reasoning (budget: $ReasoningBudget, format: $ReasoningFormat)"
 Write-Output "Logs: $logDir"

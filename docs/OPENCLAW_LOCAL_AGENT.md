@@ -20,9 +20,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/openclaw-agent/start
 
 ```powershell
 npm run agent:start
+npm run agent:start:thinking
 npm run agent:stop
 
 npm run agent:gemma
+npm run agent:gemma:thinking
 npm run agent:gemma:health
 npm run agent:gemma:stop
 
@@ -42,6 +44,28 @@ This adds a user-login launcher to the Windows Startup folder. It runs:
 
 ```powershell
 scripts/openclaw-agent/start-all.ps1 -ContextSize 131072
+```
+
+## Thinking Mode
+
+The default launcher keeps llama.cpp reasoning disabled so normal chat is fast and benchmark results stay comparable. To test Gemma QAT with reasoning enabled:
+
+```powershell
+npm run agent:start:thinking
+```
+
+That restarts the model server with:
+
+```text
+--reasoning on --reasoning-budget 512 --reasoning-format auto
+```
+
+Use this for planning, tool decisions, or messy tasks. For quick chat, memory notes, and background watching, start with the normal `npm run agent:start` and only switch if quality is not enough.
+
+Benchmark comparison:
+
+```powershell
+npx tsx scripts/debugger-llm.ts compare --profiles gemmaQat,gemmaQatThink --limit 10
 ```
 
 Remove it with:

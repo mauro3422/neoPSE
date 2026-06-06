@@ -32,11 +32,15 @@ interface Profile {
   gpu: boolean;
   ctx: number;
   label: string;
+  reasoning?: 'off' | 'auto' | 'on';
+  reasoningBudget?: number;
+  reasoningFormat?: 'auto' | 'none' | 'deepseek' | 'deepseek-legacy';
 }
 
 const PROFILES: Record<string, Profile> = {
   gemma:      { model: MODELS.gemma,      port: 8000, gpu: true,  ctx: 8192, label: 'Gemma 4 E2B Q4_K_M GPU' },
   gemmaQat:   { model: MODELS.gemmaQat,   port: 8003, gpu: true,  ctx: 8192, label: 'Gemma 4 E2B QAT Q4_0 GPU' },
+  gemmaQatThink: { model: MODELS.gemmaQat, port: 8006, gpu: true, ctx: 8192, label: 'Gemma 4 E2B QAT Q4_0 GPU Thinking', reasoning: 'on', reasoningBudget: 512, reasoningFormat: 'auto' },
   gemmaE4Qat: { model: MODELS.gemmaE4Qat, port: 8004, gpu: true,  ctx: 8192, label: 'Gemma 4 E4B QAT Q4_0 GPU' },
   gemma12Qat: { model: MODELS.gemma12Qat, port: 8005, gpu: true,  ctx: 8192, label: 'Gemma 4 12B QAT Q4_0 GPU' },
   wrGpu:      { model: MODELS.wr,         port: 8001, gpu: true,  ctx: 8192, label: 'WR GPU' },
@@ -53,8 +57,9 @@ function buildArgs(p: Profile): string[] {
     '--parallel', '1',
     '-cb',
     '--temp', '0.2',
-    '--reasoning', 'off',
-    '--reasoning-budget', '0',
+    '--reasoning', p.reasoning || 'off',
+    '--reasoning-budget', String(p.reasoningBudget || 0),
+    '--reasoning-format', p.reasoningFormat || 'auto',
     '--cache-type-k', 'q8_0',
     '--cache-type-v', 'q8_0',
     '--cache-ram', '0',
@@ -419,6 +424,15 @@ function baseResultFields(tc: TestCase): Pick<TestResult, 'modelPath' | 'modelSi
   };
 }
 
+function maxTokensForProfile(tc: TestCase): number {
+  const profile = PROFILES[tc.profile];
+  return (tc.maxTokens || 600) + (profile.reasoningBudget || 0);
+}
+
+function timeoutForMaxTokens(maxTokens: number): number {
+  return Math.max(90000, maxTokens * 100);
+}
+
 function buildRepairPrompt(tc: TestCase, badResponse: string): string {
   return [
     'Repair the assistant output for NeoPSE.',
@@ -473,13 +487,14 @@ async function runSingleTest(tc: TestCase): Promise<TestResult> {
       ? new InlinePrompt(mockContext, 'node-1', responseMode)
       : new AssistantPrompt(mockContext, responseMode);
     const systemPrompt = builder.buildSystemPrompt();
-    const data = await query(profile.port, systemPrompt, tc.query, tc.maxTokens, tc.expectedResponse === 'canvas_action_json');
+    const maxTokens = maxTokensForProfile(tc);
+    const data = await query(profile.port, systemPrompt, tc.query, maxTokens, tc.expectedResponse === 'canvas_action_json', timeoutForMaxTokens(maxTokens));
     const elapsed = performance.now() - start;
     let content = data.choices?.[0]?.message?.content ?? '';
     let quality = evaluateTextResponse(content, tc);
 
     if (shouldRepairCanvasJson(quality, tc)) {
-      const repairData = await query(profile.port, systemPrompt, buildRepairPrompt(tc, content), tc.maxTokens, true);
+      const repairData = await query(profile.port, systemPrompt, buildRepairPrompt(tc, content), maxTokens, true, timeoutForMaxTokens(maxTokens));
       const repairedContent = repairData.choices?.[0]?.message?.content ?? '';
       const repairedQuality = evaluateTextResponse(repairedContent, tc);
       if (repairedQuality.success || repairedQuality.flags.length <= quality.flags.length) {
@@ -872,8 +887,8 @@ async function main(): Promise<void> {
   console.log('Uso: npx tsx scripts/debugger-llm.ts [benchmark|historical|compare|toolcall|server] [profile]');
   console.log('  benchmark        - ejecuta todos los tests');
   console.log('  historical       - ejecuta los 50 escenarios historicos');
-  console.log('  historical --from N --limit N --profile gemma|gemmaQat|gemmaE4Qat|gemma12Qat|wrCpu|wrGpu|liquid');
-  console.log('  compare --profiles gemma,gemmaQat --from N --limit N');
+  console.log('  historical --from N --limit N --profile gemma|gemmaQat|gemmaQatThink|gemmaE4Qat|gemma12Qat|wrCpu|wrGpu|liquid');
+  console.log('  compare --profiles gemmaQat,gemmaQatThink --from N --limit N');
   console.log('  toolcall [port]  - prueba tool calling de Gemma');
   console.log('  server <perfil>  - inicia server de un perfil');
   console.log('  Perfiles: ' + Object.keys(PROFILES).join(', '));
