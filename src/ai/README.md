@@ -18,6 +18,9 @@ Los modelos viven fuera del repo:
 | Perfil | Archivo | Puerto | Uso |
 | --- | --- | --- | --- |
 | Gemma | `D:\ai-models\google_gemma-4-E2B-it-Q4_K_M.gguf` | 8000 | Default, PSeInt, tool calling |
+| Gemma QAT | `D:\ai-models\gemma-4-E2B_q4_0-it.gguf` | 8003 | Candidato oficial QAT, comparacion A/B |
+| Gemma E4 QAT | `D:\ai-models\gemma-4-E4B_q4_0-it.gguf` | 8004 | Preparado para prueba futura |
+| Gemma 12B QAT | `D:\ai-models\gemma-4-12b-it-qat-q4_0.gguf` | 8005 | Preparado para modo calidad futuro |
 | WhiteRabbitNeo | `D:\ai-models\WhiteRabbitNeo-2.5-Qwen-2.5-Coder-7B-Q4_K_M.gguf` | 8001 | Seguridad/conversacional en CPU |
 | Liquid | `D:\ai-models\LFM2.5-1.2B-Thinking-Q4_K_M.gguf` | 8002 | Perfil experimental |
 
@@ -30,6 +33,8 @@ npm run dev:wr    # WhiteRabbitNeo en 127.0.0.1:8001
 
 npm run test:toolcall
 npm run test:ai
+npm run test:ai:historical
+npm run test:ai:compare -- --profiles gemma,gemmaQat
 ```
 
 ## Flags actuales
@@ -68,6 +73,22 @@ Notas:
 - No usar `response_format: { type: "json_object" }` en el cliente por ahora; con Gemma 4 + llama-server fue inestable en pruebas anteriores.
 - `-cb` esta validado con `npm run test:toolcall`.
 - `--no-display-prompt` ya no existe en b9360.
+
+## Gemma 4 QAT
+
+Google publico checkpoints QAT oficiales de Gemma 4 en GGUF. NeoPSE ya tiene preparado el perfil `gemmaQat` para comparar el reemplazo equivalente del default actual:
+
+- Baseline: `google_gemma-4-E2B-it-Q4_K_M.gguf`
+- QAT oficial: `gemma-4-E2B_q4_0-it.gguf`
+
+Resultado local del 2026-06-06 en RX 570/Vulkan, contexto 8192:
+
+| Perfil | Pass | Avg ms | P95 ms | Avg tok/s | Invalid JSON |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `gemma` | 50/50 | 15249 | 34795 | 12.11 | 0 |
+| `gemmaQat` | 50/50 | 16510 | 38392 | 12.09 | 0 |
+
+Conclusion actual: `gemmaQat` es compatible y oficial, pero no desplaza al default todavia. En esta maquina empato en calidad y quedo apenas mas lento en latencia total. Mantener `gemma` como default y usar `gemmaQat` como candidato reproducible para pruebas nuevas.
 
 ## Tool Calling
 

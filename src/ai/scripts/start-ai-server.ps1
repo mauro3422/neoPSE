@@ -1,5 +1,5 @@
 param(
-  [ValidateSet("gemma", "wr")]
+  [ValidateSet("gemma", "gemmaQat", "gemmaE4Qat", "gemma12Qat", "wr")]
   [string]$Profile = "gemma"
 )
 
@@ -40,20 +40,48 @@ $commonArgs = @(
   "--cache-ram", "0"
 )
 
-if ($Profile -eq "gemma") {
-  $args = $commonArgs + @(
-    "--model", "D:\ai-models\google_gemma-4-E2B-it-Q4_K_M.gguf",
-    "--port", "8000",
-    "--n-gpu-layers", "99",
-    "-fa", "auto"
-  )
+$profiles = @{
+  gemma = @{
+    Model = "D:\ai-models\google_gemma-4-E2B-it-Q4_K_M.gguf"
+    Port = "8000"
+    Gpu = $true
+  }
+  gemmaQat = @{
+    Model = "D:\ai-models\gemma-4-E2B_q4_0-it.gguf"
+    Port = "8003"
+    Gpu = $true
+  }
+  gemmaE4Qat = @{
+    Model = "D:\ai-models\gemma-4-E4B_q4_0-it.gguf"
+    Port = "8004"
+    Gpu = $true
+  }
+  gemma12Qat = @{
+    Model = "D:\ai-models\gemma-4-12b-it-qat-q4_0.gguf"
+    Port = "8005"
+    Gpu = $true
+  }
+  wr = @{
+    Model = "D:\ai-models\WhiteRabbitNeo-2.5-Qwen-2.5-Coder-7B-Q4_K_M.gguf"
+    Port = "8001"
+    Gpu = $false
+  }
+}
+
+$selected = $profiles[$Profile]
+if (-not (Test-Path $selected.Model)) {
+  throw "No existe el modelo $($selected.Model). Descargalo en D:\ai-models antes de iniciar $Profile."
+}
+
+$args = $commonArgs + @(
+  "--model", $selected.Model,
+  "--port", $selected.Port
+)
+
+if ($selected.Gpu) {
+  $args = $args + @("--n-gpu-layers", "99", "-fa", "auto")
 } else {
-  $args = $commonArgs + @(
-    "--model", "D:\ai-models\WhiteRabbitNeo-2.5-Qwen-2.5-Coder-7B-Q4_K_M.gguf",
-    "--port", "8001",
-    "--n-gpu-layers", "0",
-    "--threads", "6"
-  )
+  $args = $args + @("--n-gpu-layers", "0", "--threads", "6")
 }
 
 & $llamaExe @args

@@ -18,9 +18,12 @@ const BENCHMARK_RESULTS_DIR = path.join(ROOT, 'benchmarks', 'results');
 let serverBin = LLAMA_EXE;
 
 const MODELS = {
-  gemma:  path.join(MODELS_DIR, 'google_gemma-4-E2B-it-Q4_K_M.gguf'),
-  wr:     path.join(MODELS_DIR, 'WhiteRabbitNeo-2.5-Qwen-2.5-Coder-7B-Q4_K_M.gguf'),
-  liquid: path.join(MODELS_DIR, 'LFM2.5-1.2B-Thinking-Q4_K_M.gguf'),
+  gemma:      path.join(MODELS_DIR, 'google_gemma-4-E2B-it-Q4_K_M.gguf'),
+  gemmaQat:   path.join(MODELS_DIR, 'gemma-4-E2B_q4_0-it.gguf'),
+  gemmaE4Qat: path.join(MODELS_DIR, 'gemma-4-E4B_q4_0-it.gguf'),
+  gemma12Qat: path.join(MODELS_DIR, 'gemma-4-12b-it-qat-q4_0.gguf'),
+  wr:         path.join(MODELS_DIR, 'WhiteRabbitNeo-2.5-Qwen-2.5-Coder-7B-Q4_K_M.gguf'),
+  liquid:     path.join(MODELS_DIR, 'LFM2.5-1.2B-Thinking-Q4_K_M.gguf'),
 } as const;
 
 interface Profile {
@@ -32,10 +35,13 @@ interface Profile {
 }
 
 const PROFILES: Record<string, Profile> = {
-  gemma:   { model: MODELS.gemma,  port: 8000, gpu: true,  ctx: 8192, label: 'Gemma 4 GPU' },
-  wrGpu:   { model: MODELS.wr,     port: 8001, gpu: true,  ctx: 8192, label: 'WR GPU' },
-  wrCpu:   { model: MODELS.wr,     port: 8001, gpu: false, ctx: 8192, label: 'WR CPU' },
-  liquid:  { model: MODELS.liquid, port: 8002, gpu: false, ctx: 8192,  label: 'Liquid CPU' },
+  gemma:      { model: MODELS.gemma,      port: 8000, gpu: true,  ctx: 8192, label: 'Gemma 4 E2B Q4_K_M GPU' },
+  gemmaQat:   { model: MODELS.gemmaQat,   port: 8003, gpu: true,  ctx: 8192, label: 'Gemma 4 E2B QAT Q4_0 GPU' },
+  gemmaE4Qat: { model: MODELS.gemmaE4Qat, port: 8004, gpu: true,  ctx: 8192, label: 'Gemma 4 E4B QAT Q4_0 GPU' },
+  gemma12Qat: { model: MODELS.gemma12Qat, port: 8005, gpu: true,  ctx: 8192, label: 'Gemma 4 12B QAT Q4_0 GPU' },
+  wrGpu:      { model: MODELS.wr,         port: 8001, gpu: true,  ctx: 8192, label: 'WR GPU' },
+  wrCpu:      { model: MODELS.wr,         port: 8001, gpu: false, ctx: 8192, label: 'WR CPU' },
+  liquid:     { model: MODELS.liquid,     port: 8002, gpu: false, ctx: 8192, label: 'Liquid CPU' },
 };
 
 function buildArgs(p: Profile): string[] {
@@ -264,6 +270,8 @@ interface TestResult {
   type: string;
   category: string;
   profile: string;
+  modelPath?: string;
+  modelSizeGB?: number;
   success: boolean;
   durationMs: number;
   response: string;
@@ -277,6 +285,25 @@ interface TestResult {
   isToolCall?: boolean;
   isJsonValid?: boolean;
   qualityFlags?: string[];
+}
+
+function getModelSizeGB(modelPath: string): number {
+  try {
+    return Math.round((fs.statSync(modelPath).size / 1024 / 1024 / 1024) * 100) / 100;
+  } catch {
+    return 0;
+  }
+}
+
+function p95(values: number[]): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * 0.95) - 1)];
+}
+
+function average(values: number[]): number {
+  if (values.length === 0) return 0;
+  return values.reduce((a, b) => a + b, 0) / values.length;
 }
 
 function parseJsonObject(content: string): { ok: boolean; parsed?: any } {
@@ -373,6 +400,25 @@ function shouldRepairCanvasJson(quality: { flags: string[] }, tc: TestCase): boo
   );
 }
 
+function getSpeedTokS(data: any, completionTokens: number, durationMs: number): number {
+  const serverSpeed = data.timings?.predicted_per_second;
+  if (typeof serverSpeed === 'number' && Number.isFinite(serverSpeed) && serverSpeed > 0) {
+    return Math.round(serverSpeed * 100) / 100;
+  }
+  if (completionTokens > 0 && durationMs > 0) {
+    return Math.round((completionTokens / (durationMs / 1000)) * 100) / 100;
+  }
+  return 0;
+}
+
+function baseResultFields(tc: TestCase): Pick<TestResult, 'modelPath' | 'modelSizeGB'> {
+  const profile = PROFILES[tc.profile];
+  return {
+    modelPath: profile.model,
+    modelSizeGB: getModelSizeGB(profile.model)
+  };
+}
+
 function buildRepairPrompt(tc: TestCase, badResponse: string): string {
   return [
     'Repair the assistant output for NeoPSE.',
@@ -407,13 +453,14 @@ async function runSingleTest(tc: TestCase): Promise<TestResult> {
       const quality = evaluateToolCall(msg, tc);
       return {
         name: tc.name, type: tc.type, category: tc.category, profile: tc.profile,
+        ...baseResultFields(tc),
         success: quality.success,
         durationMs: Math.round(elapsed),
         response: JSON.stringify(isToolCall ? msg.tool_calls : msg?.content),
         promptTokens: data.usage?.prompt_tokens ?? 0,
         completionTokens: data.usage?.completion_tokens ?? 0,
         totalTokens: data.usage?.total_tokens ?? 0,
-        speedTokS: data.timings?.predicted_per_second ?? 0,
+        speedTokS: getSpeedTokS(data, data.usage?.completion_tokens ?? 0, Math.round(elapsed)),
         isToolCall,
         isJsonValid: true,
         qualityFlags: quality.flags,
@@ -443,13 +490,14 @@ async function runSingleTest(tc: TestCase): Promise<TestResult> {
 
     return {
       name: tc.name, type: tc.type, category: tc.category, profile: tc.profile,
+      ...baseResultFields(tc),
       success: quality.success,
       durationMs: Math.round(elapsed),
       response: content,
       promptTokens: data.usage?.prompt_tokens ?? 0,
       completionTokens: data.usage?.completion_tokens ?? 0,
       totalTokens: data.usage?.total_tokens ?? 0,
-      speedTokS: data.timings?.predicted_per_second ?? 0,
+      speedTokS: getSpeedTokS(data, data.usage?.completion_tokens ?? 0, Math.round(elapsed)),
       isJsonValid: quality.isJsonValid,
       qualityFlags: quality.flags,
       ...mem
@@ -457,6 +505,7 @@ async function runSingleTest(tc: TestCase): Promise<TestResult> {
   } catch (err) {
     return {
       name: tc.name, type: tc.type, category: tc.category, profile: tc.profile,
+      ...baseResultFields(tc),
       success: false, durationMs: Math.round(performance.now() - start),
       response: '', promptTokens: 0, completionTokens: 0, totalTokens: 0, speedTokS: 0,
       error: (err as Error).message,
@@ -559,7 +608,69 @@ function saveBenchmarkResults(results: TestResult[]): void {
   const payload = JSON.stringify(results, null, 2);
   fs.writeFileSync(path.join(BENCHMARK_RESULTS_DIR, 'latest.json'), payload);
   fs.writeFileSync(path.join(BENCHMARK_RESULTS_DIR, `${timestamp}.json`), payload);
+  const markdown = buildComparisonSummary(results);
+  fs.writeFileSync(path.join(BENCHMARK_RESULTS_DIR, 'latest-summary.md'), markdown);
+  fs.writeFileSync(path.join(BENCHMARK_RESULTS_DIR, `${timestamp}.md`), markdown);
   console.log(`\nResultados guardados en ${path.relative(ROOT, BENCHMARK_RESULTS_DIR)}\\latest.json`);
+  console.log(`Resumen guardado en ${path.relative(ROOT, BENCHMARK_RESULTS_DIR)}\\latest-summary.md`);
+}
+
+function countFlag(results: TestResult[], flag: string): number {
+  return results.filter(r => r.qualityFlags?.some(f => f === flag || f.startsWith(`${flag}:`))).length;
+}
+
+function buildComparisonSummary(results: TestResult[]): string {
+  const byProfile = new Map<string, TestResult[]>();
+  for (const result of results) {
+    const bucket = byProfile.get(result.profile) || [];
+    bucket.push(result);
+    byProfile.set(result.profile, bucket);
+  }
+
+  const lines = [
+    '# NeoPSE AI Model Benchmark Summary',
+    '',
+    `Generated: ${new Date().toISOString()}`,
+    '',
+    '| Profile | Model | Size GB | Pass | Avg ms | P95 ms | Avg tok/s | Invalid JSON | Wrong/missing tool | Request failed |',
+    '|---|---|---:|---:|---:|---:|---:|---:|---:|---:|'
+  ];
+
+  for (const [profile, profileResults] of byProfile.entries()) {
+    const first = profileResults[0];
+    const passed = profileResults.filter(r => r.success).length;
+    const avgMs = Math.round(average(profileResults.map(r => r.durationMs)));
+    const p95Ms = Math.round(p95(profileResults.map(r => r.durationMs)));
+    const nonZeroSpeeds = profileResults.map(r => r.speedTokS).filter(speed => speed > 0);
+    const avgSpeed = Math.round(average(nonZeroSpeeds) * 100) / 100;
+    const invalidJson = countFlag(profileResults, 'invalid_json');
+    const wrongTool = countFlag(profileResults, 'missing_tool') + countFlag(profileResults, 'missing_tool_call') + countFlag(profileResults, 'unexpected_tool_use');
+    const requestFailed = countFlag(profileResults, 'request_failed') + countFlag(profileResults, 'server_not_ready');
+    lines.push([
+      profile,
+      path.basename(first.modelPath || ''),
+      String(first.modelSizeGB ?? 0),
+      `${passed}/${profileResults.length}`,
+      String(avgMs),
+      String(p95Ms),
+      String(avgSpeed),
+      String(invalidJson),
+      String(wrongTool),
+      String(requestFailed)
+    ].join(' | ').replace(/^/, '| ').replace(/$/, ' |'));
+  }
+
+  lines.push('', '## Failed Cases', '');
+  const failures = results.filter(r => !r.success);
+  if (failures.length === 0) {
+    lines.push('All cases passed.');
+  } else {
+    for (const failure of failures) {
+      lines.push(`- ${failure.profile} / ${failure.name}: ${(failure.qualityFlags || []).join(', ') || failure.error || 'unknown_error'}`);
+    }
+  }
+
+  return `${lines.join('\n')}\n`;
 }
 
 function buildSmokeTests(): TestCase[] {
@@ -643,6 +754,34 @@ function buildHistoricalTests(args: string[]): TestCase[] {
   }));
 }
 
+function buildComparisonTests(args: string[]): TestCase[] {
+  const profilesArg = readOption(args, 'profiles') || 'gemma,gemmaQat';
+  const profiles = profilesArg.split(/[,\s]+/).map(p => p.trim()).filter(Boolean) as Array<keyof typeof PROFILES>;
+  const limit = Number(readOption(args, 'limit') || SCENARIOS.length);
+  const from = Math.max(1, Number(readOption(args, 'from') || 1));
+
+  for (const profile of profiles) {
+    if (!PROFILES[profile]) {
+      throw new Error(`Perfil invalido: ${profile}. Perfiles: ${Object.keys(PROFILES).join(', ')}`);
+    }
+  }
+
+  const scenarios = SCENARIOS.slice(from - 1, from - 1 + (Number.isFinite(limit) ? limit : SCENARIOS.length));
+  return profiles.flatMap(profile =>
+    scenarios.map((scenario): TestCase => ({
+      name: `${profile}-${scenario.name}`,
+      query: scenario.q,
+      type: scenario.type,
+      category: scenario.category,
+      profile,
+      expectedResponse: scenario.expectedResponse,
+      expectedAction: scenario.expectedAction,
+      expectedKeywords: scenario.expectedKeywords,
+      maxTokens: scenario.expectedResponse === 'assistant_text' ? 260 : 700
+    }))
+  );
+}
+
 async function runTests(tests: TestCase[]): Promise<void> {
   const results: TestResult[] = [];
   const profiles = Array.from(new Set(tests.map(t => t.profile)));
@@ -656,6 +795,7 @@ async function runTests(tests: TestCase[]): Promise<void> {
       for (const tc of profileTests) {
         results.push({
           name: tc.name, type: tc.type, category: tc.category, profile: tc.profile,
+          ...baseResultFields(tc),
           success: false, durationMs: 0, response: '',
           promptTokens: 0, completionTokens: 0, totalTokens: 0, speedTokS: 0,
           error: `server_not_ready:${profileName}`,
@@ -724,10 +864,16 @@ async function main(): Promise<void> {
     return;
   }
 
-  console.log('Uso: npx tsx scripts/debugger-llm.ts [benchmark|toolcall|server] [profile]');
+  if (mode === 'compare') {
+    await runTests(buildComparisonTests(args.slice(1)));
+    return;
+  }
+
+  console.log('Uso: npx tsx scripts/debugger-llm.ts [benchmark|historical|compare|toolcall|server] [profile]');
   console.log('  benchmark        - ejecuta todos los tests');
   console.log('  historical       - ejecuta los 50 escenarios historicos');
-  console.log('  historical --from N --limit N --profile gemma|wrCpu|wrGpu|liquid');
+  console.log('  historical --from N --limit N --profile gemma|gemmaQat|gemmaE4Qat|gemma12Qat|wrCpu|wrGpu|liquid');
+  console.log('  compare --profiles gemma,gemmaQat --from N --limit N');
   console.log('  toolcall [port]  - prueba tool calling de Gemma');
   console.log('  server <perfil>  - inicia server de un perfil');
   console.log('  Perfiles: ' + Object.keys(PROFILES).join(', '));
