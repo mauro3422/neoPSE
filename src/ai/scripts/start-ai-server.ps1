@@ -1,6 +1,8 @@
 param(
   [ValidateSet("gemma", "gemmaQat", "gemmaE4Qat", "gemma12Qat", "wr")]
-  [string]$Profile = "gemma"
+  [string]$Profile = "gemma",
+
+  [int]$ContextSize = 8192
 )
 
 $ErrorActionPreference = "Stop"
@@ -34,7 +36,7 @@ $commonArgs = @(
   "--temp", "0.2",
   "--reasoning", "off",
   "--reasoning-budget", "0",
-  "--ctx-size", "8192",
+  "--ctx-size", "$ContextSize",
   "--cache-type-k", "q8_0",
   "--cache-type-v", "q8_0",
   "--cache-ram", "0"
