@@ -2,7 +2,9 @@ param(
   [int]$ContextSize = 131072,
   [int]$MaxTokens = 2048,
   [int]$ModelPort = 8003,
-  [int]$GatewayPort = 18789
+  [int]$GatewayPort = 18789,
+  [ValidateSet("off", "auto", "on")]
+  [string]$Reasoning = "off"
 )
 
 $ErrorActionPreference = "Stop"
@@ -10,6 +12,12 @@ $ErrorActionPreference = "Stop"
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
 $openclaw = (Get-Command openclaw.cmd -ErrorAction Stop).Source
 $baseUrl = "http://127.0.0.1:$ModelPort/v1"
+$reasoningEnabled = $Reasoning -ne "off"
+$modelName = if ($reasoningEnabled) {
+  "Gemma 4 E2B QAT local thinking via llama.cpp"
+} else {
+  "Gemma 4 E2B QAT local via llama.cpp"
+}
 
 $patch = @{
   agents = @{
@@ -48,7 +56,7 @@ $patch = @{
         models = @(
           @{
             id = "gemma-4-E2B_q4_0-it.gguf"
-            name = "Gemma 4 E2B QAT local via llama.cpp"
+            name = $modelName
             contextWindow = $ContextSize
             maxTokens = $MaxTokens
             input = @("text")
@@ -58,7 +66,7 @@ $patch = @{
               cacheRead = 0
               cacheWrite = 0
             }
-            reasoning = $false
+            reasoning = $reasoningEnabled
             compat = @{
               requiresStringContent = $true
             }

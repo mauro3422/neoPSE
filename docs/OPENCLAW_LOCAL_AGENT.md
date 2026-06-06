@@ -54,11 +54,13 @@ The default launcher keeps llama.cpp reasoning disabled so normal chat is fast a
 npm run agent:start:thinking
 ```
 
-That restarts the model server with:
+That restarts the model server and rewrites the OpenClaw local model metadata with:
 
 ```text
 --reasoning on --reasoning-budget 512 --reasoning-format auto
 ```
+
+OpenClaw still shows one local Gemma model. The mode is selected by how you start the agent, because exposing normal and thinking as two simultaneous dropdown choices would require two llama.cpp servers and two copies of the model in memory.
 
 Use this for planning, tool decisions, or messy tasks. For quick chat, memory notes, and background watching, start with the normal `npm run agent:start` and only switch if quality is not enough.
 
